@@ -10,9 +10,12 @@ import { programManager } from './program';
 
 // Initialize app with error handling
 document.addEventListener('DOMContentLoaded', async () => {
+  console.log('DOM loaded, initializing app...');
   try {
   // Initialize data
+  console.log('Initializing program manager...');
   await programManager.initialize();
+  console.log('Program manager initialized');
 
   // Wait for app-shell to be fully initialized
   const appShell = document.querySelector('app-shell');
@@ -21,11 +24,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
+  console.log('Found app shell, waiting for shadow DOM...');
+
   // Wait for the shadow DOM to be ready
   await new Promise(resolve => {
     const check = () => {
       const shadowRoot = (appShell as any).shadowRoot;
       if (shadowRoot && shadowRoot.querySelector('#content')) {
+        console.log('Shadow DOM ready');
         resolve(void 0);
       } else {
         setTimeout(check, 10);
@@ -111,12 +117,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Start the router
+  console.log('Starting router...');
   router.start();
   
   // Default to Day 1 if no hash is set
   if (!window.location.hash || window.location.hash === '#/') {
+    console.log('No hash found, navigating to Day 1');
     router.navigate('/day/p1_w1_d1');
+  } else {
+    console.log('Found hash:', window.location.hash);
   }
+  
+  console.log('App initialization complete');
   } catch (error) {
     console.error('Failed to initialize app:', error);
     // Show error message to user

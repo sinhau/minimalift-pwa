@@ -87,8 +87,9 @@ export class AppShell extends HTMLElement {
           flex: 1;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
-          padding: 0; /* Remove padding from main, let child components handle it */
+          padding: 0;
           position: relative;
+          background: var(--bg-primary);
         }
 
         .timer-bar {
