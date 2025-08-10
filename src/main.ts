@@ -98,18 +98,4 @@ document.addEventListener('DOMContentLoaded', async () => {
       // TODO: Show settings modal
     });
   }
-  
-  // Request wake lock if available
-  if ('wakeLock' in navigator) {
-    document.addEventListener('visibilitychange', async () => {
-      if (document.visibilityState === 'visible') {
-        try {
-          await (navigator as any).wakeLock.request('screen');
-          console.log('Wake lock acquired');
-        } catch (err) {
-          console.error('Wake lock error:', err);
-        }
-      }
-    });
-  }
 });

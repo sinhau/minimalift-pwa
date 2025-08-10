@@ -3,6 +3,9 @@ import { EMOMTimer } from '../timers/emom';
 import { N90Timer } from '../timers/n90';
 import { FixedRestTimer, TimedCircuitTimer } from '../timers/fixed-rest';
 import { Day, Block, Exercise } from '../types';
+import { wakeLockManager } from '../utils/wake-lock';
+import { backgroundTimerManager } from '../utils/background-timer';
+import { feedbackManager } from '../utils/feedback';
 
 export class ViewSession extends HTMLElement {
   private currentDay: Day | null = null;
@@ -10,6 +13,8 @@ export class ViewSession extends HTMLElement {
   private currentExerciseIndex = 0;
   private currentTimer: BaseTimer | null = null;
   private sessionStartTime: number = 0;
+  private foregroundCallback: (() => void) | null = null;
+  private lastPhase: string | null = null;
 
   constructor() {
     super();
@@ -19,6 +24,11 @@ export class ViewSession extends HTMLElement {
   connectedCallback() {
     this.render();
     this.setupEventListeners();
+    this.setupBackgroundHandling();
+  }
+
+  disconnectedCallback() {
+    this.cleanup();
   }
 
   setDay(day: Day) {
@@ -540,10 +550,15 @@ export class ViewSession extends HTMLElement {
     });
   }
 
-  private startTimer() {
+  private async startTimer() {
     if (!this.sessionStartTime) {
       this.sessionStartTime = performance.now();
+      // Request notification permission when starting first timer
+      await backgroundTimerManager.requestNotificationPermission();
     }
+
+    // Acquire wake lock to keep screen active
+    await wakeLockManager.acquire();
 
     this.currentTimer = this.createTimerForCurrentBlock();
     if (!this.currentTimer) return;
@@ -553,16 +568,19 @@ export class ViewSession extends HTMLElement {
     });
 
     this.currentTimer.start();
+    feedbackManager.timerStart();
     this.render();
   }
 
   private pauseTimer() {
     this.currentTimer?.pause();
+    feedbackManager.timerPause();
     this.render();
   }
 
   private resumeTimer() {
     this.currentTimer?.start();
+    feedbackManager.timerStart();
     this.render();
   }
 
@@ -579,6 +597,8 @@ export class ViewSession extends HTMLElement {
     const block = this.getCurrentBlock();
     if (!block) return;
 
+    feedbackManager.exerciseComplete();
+
     this.currentTimer?.stop();
     this.currentTimer = null;
 
@@ -594,7 +614,10 @@ export class ViewSession extends HTMLElement {
     this.render();
   }
 
-  private finishSession() {
+  private async finishSession() {
+    feedbackManager.sessionComplete();
+    await this.cleanup();
+    
     this.dispatchEvent(new CustomEvent('session-complete', {
       detail: {
         day: this.currentDay,
@@ -603,14 +626,78 @@ export class ViewSession extends HTMLElement {
     }));
   }
 
+  private setupBackgroundHandling() {
+    // Set up callback for when app returns to foreground
+    this.foregroundCallback = () => {
+      // Re-acquire wake lock if we had one and it was lost
+      if (this.currentTimer?.getState() === 'running') {
+        wakeLockManager.reacquire();
+      }
+      
+      // Update display in case timer kept running in background
+      this.updateTimerDisplay();
+    };
+
+    backgroundTimerManager.addForegroundCallback(this.foregroundCallback);
+  }
+
+  private async cleanup() {
+    // Stop timer
+    if (this.currentTimer) {
+      this.currentTimer.stop();
+      this.currentTimer = null;
+    }
+
+    // Release wake lock
+    await wakeLockManager.release();
+
+    // Remove background callback
+    if (this.foregroundCallback) {
+      backgroundTimerManager.removeForegroundCallback(this.foregroundCallback);
+      this.foregroundCallback = null;
+    }
+  }
+
   private handleTimerEvent(event: TimerEvent) {
     if (event.type === 'tick') {
       this.updateTimerDisplay();
+      this.checkForPhaseChange();
+      this.checkForCountdownWarning(event.remaining);
     } else if (event.type === 'complete') {
+      feedbackManager.exerciseComplete();
       this.render(); // Re-render to show "Next Exercise" button
     } else if (event.type === 'roundComplete') {
-      // Could add haptic feedback here
-      console.log('Round completed:', event.round);
+      feedbackManager.roundComplete();
+    }
+  }
+
+  private checkForPhaseChange() {
+    const currentPhase = this.getTimerPhase();
+    
+    if (this.lastPhase && this.lastPhase !== currentPhase) {
+      if (currentPhase === 'Work Period') {
+        feedbackManager.workPeriodStart();
+      } else if (currentPhase === 'Rest Period') {
+        feedbackManager.restPeriodStart();
+      }
+    }
+    
+    this.lastPhase = currentPhase;
+  }
+
+  private checkForCountdownWarning(remaining: number) {
+    // Warn at 3, 2, 1 seconds remaining
+    const secondsRemaining = Math.ceil(remaining / 1000);
+    
+    if (secondsRemaining <= 3 && secondsRemaining > 0) {
+      const lastWarnTime = (this as any).lastWarnTime || 0;
+      const currentTime = performance.now();
+      
+      // Only warn once per second
+      if (currentTime - lastWarnTime > 900) {
+        feedbackManager.countdownWarning();
+        (this as any).lastWarnTime = currentTime;
+      }
     }
   }
 
