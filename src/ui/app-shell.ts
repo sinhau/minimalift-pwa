@@ -1,6 +1,4 @@
 export class AppShell extends HTMLElement {
-  private currentView: string = 'home';
-  
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -185,7 +183,6 @@ export class AppShell extends HTMLElement {
       </header>
 
       <main id="content">
-        <slot></slot>
       </main>
 
       <div class="timer-bar" id="timer-bar">
