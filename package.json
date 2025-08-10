@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && node scripts/generate-manifest.js && node scripts/generate-sw.js",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },

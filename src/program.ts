@@ -14,9 +14,8 @@ export class ProgramManager {
   }
 
   async initialize(): Promise<void> {
-    // Load seed data dynamically
-    const seedDataModule = await import('./data/seed-data.json');
-    const seedData = seedDataModule.default as SeedData;
+    // Load seed data from TypeScript module
+    const { seedData } = await import('./data/seed-data');
     
     // Check if data already exists
     const existingProgram = await idb.get<Program>('programs', seedData.programId);

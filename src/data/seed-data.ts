@@ -1,3 +1,6 @@
+import { SeedData } from "../types";
+
+export const seedData: SeedData = 
 {
   "programId": "minimalift_3day",
   "title": "Minimalift 3-Day Full Body",
@@ -323,4 +326,4 @@
       ]
     }
   ]
-}
+};
