@@ -24,13 +24,15 @@
     "url": "https://github.com/sinhau/minimalift-pwa/issues"
   },
   "homepage": "https://github.com/sinhau/minimalift-pwa#readme",
+  "dependencies": {
+    "typescript": "^5.9.2",
+    "vite": "^7.1.1"
+  },
   "devDependencies": {
     "@types/node": "^24.2.1",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "eslint": "^9.33.0",
-    "sharp": "^0.34.3",
-    "typescript": "^5.9.2",
-    "vite": "^7.1.1"
+    "sharp": "^0.34.3"
   }
 }
