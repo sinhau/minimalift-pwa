@@ -73,8 +73,8 @@ var L=Object.defineProperty;var F=(c,t,e)=>t in c?L(c,t,{enumerable:!0,configura
           flex: 1;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
-          padding: 16px;
-          padding-bottom: calc(16px + env(safe-area-inset-bottom));
+          padding: 0; /* Remove padding from main, let child components handle it */
+          position: relative;
         }
 
         .timer-bar {
@@ -322,6 +322,8 @@ var L=Object.defineProperty;var F=(c,t,e)=>t in c?L(c,t,{enumerable:!0,configura
         :host {
           display: block;
           padding: 16px;
+          padding-bottom: 120px; /* Extra space for fixed button */
+          min-height: 100vh;
         }
 
         h2 {
@@ -920,4 +922,4 @@ var L=Object.defineProperty;var F=(c,t,e)=>t in c?L(c,t,{enumerable:!0,configura
         </button>
       </div>
     `}});
-//# sourceMappingURL=index-DGCuzLoj.js.map
+//# sourceMappingURL=index-B0mOiFBG.js.map
