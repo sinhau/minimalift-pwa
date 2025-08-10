@@ -16,23 +16,22 @@ For broader project context, technical specifications, and implementation detail
 ### Pre-Commit Checklist (MANDATORY)
 **ALWAYS follow these steps in order before committing ANY changes:**
 
-1. **📝 Add New Tests (if needed)**
+1. **🏗️ Build Verification** 
+   ```bash
+   npm run build
+   ```
+   - Must compile without errors
+
+2. **📝 Add New Tests (if needed)**
    - If you added new functions, components, or significant logic
    - If you modified existing functionality that isn't well covered
 
-2. **🧪 Run Unit Tests**
+3. **🧪 Run Unit Tests**
    ```bash
    npm run test:run
    ```
    - Fix any failing tests before proceeding
    - All tests must pass to continue
-
-3. **🏗️ Build Verification** 
-   ```bash
-   npm run build
-   ```
-   - Must compile without errors
-   - If build fails, fix issues and repeat steps 1-3
 
 4. **🚀 Commit & Push**
    ```bash
