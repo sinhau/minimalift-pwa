@@ -3,7 +3,7 @@ import path from 'path';
 
 const basePath = '';
 
-const swContent = `const CACHE_NAME = 'minimalift-v1';
+const swContent = `const CACHE_NAME = 'minimalift-v2';
 const basePath = '${basePath}';
 const urlsToCache = [
   basePath + '/',
@@ -19,7 +19,7 @@ self.addEventListener('install', (event) => {
       .then((cache) => cache.addAll(urlsToCache))
       .catch((error) => console.log('Cache addAll failed:', error))
   );
-  self.skipWaiting();
+  // Don't skip waiting automatically - let the app control when to update
 });
 
 self.addEventListener('activate', (event) => {
@@ -79,6 +79,14 @@ self.addEventListener('fetch', (event) => {
         });
       })
   );
+});
+
+// Handle messages from the app
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('Received SKIP_WAITING message');
+    self.skipWaiting();
+  }
 });`;
 
 // Write to dist folder during build

@@ -2,20 +2,11 @@ import './ui/app-shell';
 import './ui/view-home';
 import './ui/view-day';
 import './ui/view-session';
+import './ui/update-notification';
 import { router } from './router';
 import { programManager } from './program';
 
-// Register service worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('ServiceWorker registered:', registration);
-    } catch (error) {
-      console.error('ServiceWorker registration failed:', error);
-    }
-  });
-}
+// Service worker registration is now handled by AppUpdater
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', async () => {
