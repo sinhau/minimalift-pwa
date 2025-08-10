@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalift - Redirecting...</title>
+    <script>
+        // GitHub Pages 404 fallback for PWA
+        (function() {
+            const targetUrl = '/minimalift-pwa/';
+            const currentPath = window.location.pathname;
+            const hash = window.location.hash || '#/';
+            
+            // If we're not already on the correct path, redirect
+            if (!currentPath.startsWith('/minimalift-pwa/')) {
+                window.location.replace(targetUrl + hash);
+            }
+        })();
+    </script>
+</head>
+<body>
+    <div style="text-align: center; margin-top: 50px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+        <h1>Redirecting to Minimalift...</h1>
+        <p>If you're not redirected automatically, <a href="/minimalift-pwa/#/">click here</a>.</p>
+    </div>
+</body>
+</html>

@@ -19,16 +19,10 @@
   <body>
     <app-shell></app-shell>
     <script>
-      // PWA route fallback - ensure we have a hash route when launched as standalone app
-      (function() {
-        const isStandalone = window.navigator.standalone || 
-                           window.matchMedia('(display-mode: standalone)').matches ||
-                           window.matchMedia('(display-mode: fullscreen)').matches;
-        
-        if (isStandalone && !window.location.hash) {
-          window.location.hash = '/';
-        }
-      })();
+      // PWA route fallback - ensure we have a hash route
+      if (!window.location.hash) {
+        window.location.hash = '/';
+      }
     </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
