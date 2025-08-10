@@ -13,3 +13,4 @@ For broader project context, technical specifications, and implementation detail
 
 ## Workflow
 - **Always commit and push changes** after making any modifications to the codebase
+- **PWA Cache Updates**: The service worker cache version is now auto-generated using timestamps during `npm run build` to ensure every build creates a new cache version for proper PWA updates

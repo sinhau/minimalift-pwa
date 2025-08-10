@@ -3,7 +3,10 @@ import path from 'path';
 
 const basePath = '';
 
-const swContent = `const CACHE_NAME = 'minimalift-v7';
+// Generate cache version based on current timestamp to ensure uniqueness
+const cacheVersion = `minimalift-v${Date.now()}`;
+
+const swContent = `const CACHE_NAME = '${cacheVersion}';
 const basePath = '${basePath}';
 const urlsToCache = [
   basePath + '/',
