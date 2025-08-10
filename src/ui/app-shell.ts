@@ -90,8 +90,7 @@ export class AppShell extends HTMLElement {
           padding: 0;
           position: relative;
           background: var(--bg-primary);
-          /* Ensure scrolling works on iOS */
-          height: 0; /* Force flex item to be scrollable */
+          min-height: 0; /* Allow flex shrinking for scrolling */
         }
 
         .timer-bar {

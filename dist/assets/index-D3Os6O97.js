@@ -76,8 +76,7 @@ var L=Object.defineProperty;var F=(c,t,e)=>t in c?L(c,t,{enumerable:!0,configura
           padding: 0;
           position: relative;
           background: var(--bg-primary);
-          /* Ensure scrolling works on iOS */
-          height: 0; /* Force flex item to be scrollable */
+          min-height: 0; /* Allow flex shrinking for scrolling */
         }
 
         .timer-bar {
@@ -326,8 +325,7 @@ var L=Object.defineProperty;var F=(c,t,e)=>t in c?L(c,t,{enumerable:!0,configura
           display: block;
           padding: 16px;
           padding-bottom: 120px; /* Extra space for fixed button */
-          height: auto;
-          overflow: visible;
+          box-sizing: border-box;
         }
 
         h2 {
@@ -926,4 +924,4 @@ var L=Object.defineProperty;var F=(c,t,e)=>t in c?L(c,t,{enumerable:!0,configura
         </button>
       </div>
     `}});
-//# sourceMappingURL=index-BPV4khO-.js.map
+//# sourceMappingURL=index-D3Os6O97.js.map

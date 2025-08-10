@@ -28,8 +28,7 @@ export class ViewDay extends HTMLElement {
           display: block;
           padding: 16px;
           padding-bottom: 120px; /* Extra space for fixed button */
-          height: auto;
-          overflow: visible;
+          box-sizing: border-box;
         }
 
         h2 {
