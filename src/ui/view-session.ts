@@ -463,6 +463,19 @@ export class ViewSession extends HTMLElement {
   }
 
   private renderControls(): string {
+    const block = this.getCurrentBlock();
+    const hasTimer = block?.timerMode && block.timerMode !== 'none';
+    
+    // If block has no timer mode, only show skip/complete controls
+    if (!hasTimer) {
+      return `
+        <div class="session-controls">
+          <button class="control-btn primary" id="complete-exercise-btn">Complete Exercise</button>
+          <button class="control-btn secondary" id="skip-btn">Skip</button>
+        </div>
+      `;
+    }
+
     const timerState = this.currentTimer?.getState() || 'idle';
     const isCompleted = timerState === 'completed';
 
@@ -629,6 +642,8 @@ export class ViewSession extends HTMLElement {
         this.resetTimer();
       } else if (target.id === 'skip-btn') {
         this.skipExercise();
+      } else if (target.id === 'complete-exercise-btn') {
+        this.completeExercise();
       } else if (target.id === 'next-btn') {
         this.nextExercise();
       } else if (target.id === 'finish-btn') {
@@ -679,6 +694,12 @@ export class ViewSession extends HTMLElement {
   }
 
   private skipExercise() {
+    this.nextExercise();
+  }
+
+  private completeExercise() {
+    // For now, same behavior as skip - just advance to next exercise
+    // TODO: Future enhancement could handle rest periods between exercises
     this.nextExercise();
   }
 
