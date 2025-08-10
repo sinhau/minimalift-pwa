@@ -102,14 +102,15 @@ export abstract class BaseTimer {
     const currentRound = this.getCurrentRound();
     const totalRounds = this.getTotalRounds();
 
-    // Check if timer is complete
-    if (elapsed >= this.getDuration()) {
+    // Check if timer is complete with tolerance to avoid display/completion mismatch
+    const duration = this.getDuration();
+    if (elapsed >= duration - 100) { // 100ms tolerance
       this.state = 'completed';
       this.stop();
       
       this.notifyCallbacks({
         type: 'complete',
-        elapsed,
+        elapsed: duration,
         remaining: 0,
         round: currentRound,
         totalRounds,
@@ -168,7 +169,8 @@ export abstract class BaseTimer {
 
   // Utility methods for time formatting
   static formatTime(milliseconds: number): string {
-    const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+    // When very close to 0, show 0 instead of rounding up to 1
+    const totalSeconds = milliseconds <= 100 ? 0 : Math.max(0, Math.ceil(milliseconds / 1000));
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;

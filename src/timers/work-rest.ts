@@ -66,8 +66,19 @@ export class WorkRestTimer extends BaseTimer {
     const wasWorkPhase = this.isWorkPhase;
     this.isWorkPhase = this.isInWorkPhase();
 
-    if (remaining <= 0) {
-      this.state = 'completed'; this.stop();
+    // Check for completion with a small tolerance to avoid display/completion mismatch
+    if (remaining <= 100) { // 100ms tolerance
+      this.state = 'completed';
+      this.stop();
+      
+      this.notifyCallbacks({
+        type: 'complete',
+        elapsed: this.getDuration(),
+        remaining: 0,
+        round: this.totalSets,
+        totalRounds: this.totalSets,
+        state: this.state
+      });
       return;
     }
 
