@@ -26,14 +26,17 @@ export class AppUpdater {
       this.registration = await navigator.serviceWorker.register('/sw.js');
       console.log('ServiceWorker registered:', this.registration);
 
-      // Check for updates immediately
+      // Check for updates immediately on startup
+      console.log('Checking for updates on startup...');
       await this.checkForUpdates();
       
       // Check if there's already a waiting worker (happens on app restart)
+      console.log('Checking for waiting service worker...');
       this.checkForWaitingWorker();
       
       // Double-check after a short delay to catch any race conditions
       setTimeout(() => {
+        console.log('Double-checking for waiting service worker after delay...');
         this.checkForWaitingWorker();
       }, 1000);
 
@@ -42,12 +45,21 @@ export class AppUpdater {
         this.trackInstallingWorker(this.registration.installing);
       }
 
-      // Check for updates every 60 seconds when app is active
+      // Check for updates every 30 seconds when app is active
       setInterval(() => {
         if (document.visibilityState === 'visible') {
+          console.log('Periodic update check (30s interval)');
           this.checkForUpdates();
         }
-      }, 60000);
+      }, 30000);
+
+      // Check for updates when app comes to foreground
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          console.log('App came to foreground, checking for updates');
+          this.checkForUpdates();
+        }
+      });
 
       // Listen for service worker updates
       this.registration.addEventListener('updatefound', () => {
@@ -71,10 +83,21 @@ export class AppUpdater {
   }
 
   private async checkForUpdates() {
-    if (!this.registration) return;
+    if (!this.registration) {
+      console.log('No registration available for update check');
+      return;
+    }
 
     try {
+      console.log('Calling registration.update()...');
       await this.registration.update();
+      console.log('Update check completed');
+      
+      // After update check, also check if there's a waiting worker
+      if (this.registration.waiting) {
+        console.log('Found waiting worker after update check');
+        this.showUpdateAvailable();
+      }
     } catch (error) {
       console.error('Failed to check for updates:', error);
     }
@@ -136,11 +159,16 @@ export class AppUpdater {
   }
 
   /**
-   * Force check for updates
+   * Force check for updates (public method for manual triggering)
    */
   async forceUpdateCheck() {
-    console.log('Forcing update check...');
+    console.log('Manual update check triggered...');
     await this.checkForUpdates();
+    
+    // Give some time for the update process to complete
+    setTimeout(() => {
+      this.checkForWaitingWorker();
+    }, 2000);
   }
 }
 
