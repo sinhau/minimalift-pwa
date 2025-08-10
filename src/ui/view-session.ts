@@ -37,6 +37,8 @@ export class ViewSession extends HTMLElement {
     this.currentExerciseIndex = 0;
     this.currentSetIndex = 0;
     this.isRestingBetweenSets = false;
+    console.log('Day loaded:', day);
+    console.log('Blocks:', day.blocks);
     this.render();
   }
 
@@ -447,12 +449,19 @@ export class ViewSession extends HTMLElement {
     const block = this.getCurrentBlock();
     if (!block) return '';
 
+    // Debug logging
+    console.log('Block timer type:', block.timerType);
+    console.log('Block timer config:', block.timerConfig);
+    console.log('Exercises per interval:', block.timerConfig?.exercisesPerInterval);
+
     // For interval timers with multiple exercises per interval, show all exercises for current round
     if (block.timerType === 'interval' && block.timerConfig?.exercisesPerInterval && block.timerConfig.exercisesPerInterval > 1) {
       const exercisesPerInterval = block.timerConfig.exercisesPerInterval;
       // Get the exercises for the current interval round
       const startIdx = Math.floor(this.currentExerciseIndex / exercisesPerInterval) * exercisesPerInterval;
       const exercisesToShow = block.exercises.slice(startIdx, startIdx + exercisesPerInterval);
+      
+      console.log('Showing compound exercises:', exercisesToShow.map(e => e.name));
       
       return `
         <div class="current-exercise">
