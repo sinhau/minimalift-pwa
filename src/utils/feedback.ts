@@ -133,6 +133,30 @@ export class FeedbackManager {
   }
 
   /**
+   * Set complete feedback
+   */
+  setComplete() {
+    this.vibrate([100, 50, 100]);
+    this.beep(700, 150);
+  }
+
+  /**
+   * Rest start feedback (between sets)
+   */
+  restStart() {
+    this.vibrate(80);
+    this.beep(500, 150);
+  }
+
+  /**
+   * Rest complete feedback
+   */
+  restComplete() {
+    this.vibrate([50, 30, 50]);
+    this.beep(800, 100);
+  }
+
+  /**
    * Work period start feedback (for circuits/N90)
    */
   workPeriodStart() {

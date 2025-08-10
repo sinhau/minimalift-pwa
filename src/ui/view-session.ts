@@ -11,10 +11,12 @@ export class ViewSession extends HTMLElement {
   private currentDay: Day | null = null;
   private currentBlockIndex = 0;
   private currentExerciseIndex = 0;
+  private currentSetIndex = 0; // Track current set within exercise
   private currentTimer: BaseTimer | null = null;
   private sessionStartTime: number = 0;
   private foregroundCallback: (() => void) | null = null;
   private lastPhase: string | null = null;
+  private isRestingBetweenSets = false; // Track if we're in rest period between sets
 
   constructor() {
     super();
@@ -35,6 +37,8 @@ export class ViewSession extends HTMLElement {
     this.currentDay = day;
     this.currentBlockIndex = 0;
     this.currentExerciseIndex = 0;
+    this.currentSetIndex = 0;
+    this.isRestingBetweenSets = false;
     this.render();
   }
 
@@ -433,6 +437,45 @@ export class ViewSession extends HTMLElement {
   }
 
   private renderTimer(): string {
+    const exercise = this.getCurrentExercise();
+    const block = this.getCurrentBlock();
+    const hasBlockTimer = block?.timerMode && block.timerMode !== 'none';
+
+    // For exercises with set-based rest periods
+    if (!hasBlockTimer && exercise) {
+      const totalSets = exercise.sets || 1;
+      const setNumber = this.currentSetIndex + 1;
+
+      if (this.isRestingBetweenSets && this.currentTimer) {
+        const remaining = this.currentTimer.getRemainingInCurrentPeriod();
+        const timerDisplay = BaseTimer.formatTime(remaining);
+        const elapsed = this.currentTimer.getElapsedTime();
+        const duration = this.currentTimer.getDuration();
+        const progress = Math.min(elapsed / duration, 1);
+
+        return `
+          <div class="timer-section">
+            <div class="timer-display">${timerDisplay}</div>
+            <div class="timer-phase">Rest after Set ${setNumber - 1}</div>
+            <div class="timer-progress">Set ${setNumber}/${totalSets} next</div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${progress * 100}%"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Show set info when not resting
+      return `
+        <div class="timer-section">
+          <div class="timer-display">Set ${setNumber}/${totalSets}</div>
+          <div class="timer-phase">${exercise.reps} reps</div>
+          ${exercise.restSec ? `<div class="timer-progress">${exercise.restSec}s rest after set</div>` : ''}
+        </div>
+      `;
+    }
+
+    // Handle block-level timers (EMOM, Circuit, etc.)
     if (!this.currentTimer) {
       return `
         <div class="timer-section">
@@ -464,37 +507,77 @@ export class ViewSession extends HTMLElement {
 
   private renderControls(): string {
     const block = this.getCurrentBlock();
-    const hasTimer = block?.timerMode && block.timerMode !== 'none';
+    const exercise = this.getCurrentExercise();
+    const hasBlockTimer = block?.timerMode && block.timerMode !== 'none';
     
-    // If block has no timer mode, only show skip/complete controls
-    if (!hasTimer) {
+    // Handle block-level timers (EMOM, Circuit, etc.)
+    if (hasBlockTimer) {
+      const timerState = this.currentTimer?.getState() || 'idle';
+      const isCompleted = timerState === 'completed';
+
+      let primaryButton = '';
+      if (!this.currentTimer || timerState === 'idle') {
+        primaryButton = `<button class="control-btn primary" id="start-btn">Start Timer</button>`;
+      } else if (timerState === 'running') {
+        primaryButton = `<button class="control-btn warning" id="pause-btn">Pause</button>`;
+      } else if (timerState === 'paused') {
+        primaryButton = `<button class="control-btn primary" id="resume-btn">Resume</button>`;
+      } else if (isCompleted) {
+        primaryButton = `<button class="control-btn primary" id="next-btn">Next Exercise</button>`;
+      }
+
       return `
         <div class="session-controls">
-          <button class="control-btn primary" id="complete-exercise-btn">Complete Exercise</button>
+          ${primaryButton}
+          <button class="control-btn secondary" id="reset-btn" ${(!this.currentTimer || timerState === 'idle') ? 'disabled' : ''}>Reset</button>
           <button class="control-btn secondary" id="skip-btn">Skip</button>
         </div>
       `;
     }
 
-    const timerState = this.currentTimer?.getState() || 'idle';
-    const isCompleted = timerState === 'completed';
-
-    let primaryButton = '';
-    if (!this.currentTimer || timerState === 'idle') {
-      primaryButton = `<button class="control-btn primary" id="start-btn">Start Timer</button>`;
-    } else if (timerState === 'running') {
-      primaryButton = `<button class="control-btn warning" id="pause-btn">Pause</button>`;
-    } else if (timerState === 'paused') {
-      primaryButton = `<button class="control-btn primary" id="resume-btn">Resume</button>`;
-    } else if (isCompleted) {
-      primaryButton = `<button class="control-btn primary" id="next-btn">Next Exercise</button>`;
+    // Handle set-based exercises (no block timer, but sets with rest)
+    if (!exercise) {
+      return `<div class="session-controls"><button class="control-btn secondary" id="skip-btn">Skip</button></div>`;
     }
+
+    const totalSets = exercise.sets || 1;
+    const isRestingBetweenSets = this.isRestingBetweenSets;
+    const timerState = this.currentTimer?.getState() || 'idle';
+
+    // If we're resting between sets (timer running)
+    if (isRestingBetweenSets && this.currentTimer) {
+      if (timerState === 'running') {
+        return `
+          <div class="session-controls">
+            <button class="control-btn warning" id="pause-btn">Pause Rest</button>
+            <button class="control-btn secondary" id="skip-rest-btn">Skip Rest</button>
+          </div>
+        `;
+      } else if (timerState === 'paused') {
+        return `
+          <div class="session-controls">
+            <button class="control-btn primary" id="resume-btn">Resume Rest</button>
+            <button class="control-btn secondary" id="skip-rest-btn">Skip Rest</button>
+          </div>
+        `;
+      } else if (timerState === 'completed') {
+        return `
+          <div class="session-controls">
+            <button class="control-btn primary" id="next-set-btn">Start Next Set</button>
+          </div>
+        `;
+      }
+    }
+
+    // Default state: ready for next set
+    const setNumber = this.currentSetIndex + 1;
 
     return `
       <div class="session-controls">
-        ${primaryButton}
-        <button class="control-btn secondary" id="reset-btn" ${(!this.currentTimer || timerState === 'idle') ? 'disabled' : ''}>Reset</button>
-        <button class="control-btn secondary" id="skip-btn">Skip</button>
+        <button class="control-btn primary" id="complete-set-btn">
+          Complete Set ${setNumber}/${totalSets}
+        </button>
+        <button class="control-btn secondary" id="skip-btn">Skip Exercise</button>
       </div>
     `;
   }
@@ -644,6 +727,12 @@ export class ViewSession extends HTMLElement {
         this.skipExercise();
       } else if (target.id === 'complete-exercise-btn') {
         this.completeExercise();
+      } else if (target.id === 'complete-set-btn') {
+        this.completeSet();
+      } else if (target.id === 'skip-rest-btn') {
+        this.skipRest();
+      } else if (target.id === 'next-set-btn') {
+        this.startNextSet();
       } else if (target.id === 'next-btn') {
         this.nextExercise();
       } else if (target.id === 'finish-btn') {
@@ -703,6 +792,64 @@ export class ViewSession extends HTMLElement {
     this.nextExercise();
   }
 
+  private async completeSet() {
+    const exercise = this.getCurrentExercise();
+    if (!exercise) return;
+
+    const totalSets = exercise.sets || 1;
+    const isLastSet = this.currentSetIndex >= totalSets - 1;
+
+    feedbackManager.setComplete();
+
+    if (isLastSet) {
+      // Exercise is complete, move to next exercise
+      this.nextExercise();
+    } else {
+      // Start rest timer if exercise has rest time
+      if (exercise.restSec && exercise.restSec > 0) {
+        this.currentSetIndex++;
+        this.isRestingBetweenSets = true;
+        
+        // Create rest timer
+        this.currentTimer = FixedRestTimer.create(exercise.restSec);
+        this.currentTimer.addCallback((event) => {
+          if (event.type === 'complete') {
+            this.handleRestComplete();
+          }
+        });
+        
+        // Start rest timer
+        this.currentTimer.start();
+        feedbackManager.restStart();
+      } else {
+        // No rest time, just move to next set
+        this.currentSetIndex++;
+      }
+      
+      this.render();
+    }
+  }
+
+  private skipRest() {
+    if (this.currentTimer) {
+      this.currentTimer.stop();
+      this.currentTimer = null;
+    }
+    this.handleRestComplete();
+  }
+
+  private startNextSet() {
+    this.handleRestComplete();
+  }
+
+  private handleRestComplete() {
+    this.isRestingBetweenSets = false;
+    this.currentTimer?.stop();
+    this.currentTimer = null;
+    feedbackManager.restComplete();
+    this.render();
+  }
+
   private nextExercise() {
     const block = this.getCurrentBlock();
     if (!block) return;
@@ -711,6 +858,10 @@ export class ViewSession extends HTMLElement {
 
     this.currentTimer?.stop();
     this.currentTimer = null;
+
+    // Reset set tracking for new exercise
+    this.currentSetIndex = 0;
+    this.isRestingBetweenSets = false;
 
     // Move to next exercise in current block
     if (this.currentExerciseIndex + 1 < block.exercises.length) {
