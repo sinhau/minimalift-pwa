@@ -815,6 +815,9 @@ export class ViewSession extends HTMLElement {
         this.currentTimer.addCallback((event) => {
           if (event.type === 'complete') {
             this.handleRestComplete();
+          } else if (event.type === 'tick') {
+            // Update display on each tick
+            this.updateTimerDisplay();
           }
         });
         
