@@ -6,7 +6,6 @@ import { BaseTimer } from './timer-engine';
  */
 export class N90Timer extends BaseTimer {
   private readonly periodDurationMs = 90 * 1000; // 90 seconds
-  private readonly defaultRounds = 5;
 
   constructor(private readonly totalRounds: number = 5) {
     super(100); // 100ms tick interval

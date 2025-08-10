@@ -317,7 +317,7 @@ export class ViewSession extends HTMLElement {
 
     return `
       <div class="session-header">
-        <div class="session-title">${this.currentDay.name}</div>
+        <div class="session-title">${this.currentDay.title}</div>
         <div class="session-progress">
           Block ${this.currentBlockIndex + 1} of ${totalBlocks} • 
           Exercise ${completedExercises + 1} of ${totalExercises}
@@ -339,10 +339,6 @@ export class ViewSession extends HTMLElement {
   }
 
   private renderTimer(): string {
-    const timerState = this.currentTimer?.getState() || 'idle';
-    const isRunning = timerState === 'running';
-    const isPaused = timerState === 'paused';
-
     if (!this.currentTimer) {
       return `
         <div class="timer-section">
@@ -352,7 +348,6 @@ export class ViewSession extends HTMLElement {
       `;
     }
 
-    const elapsed = this.currentTimer.getElapsedTime();
     const remaining = this.currentTimer.getRemainingInCurrentPeriod();
     const currentRound = this.currentTimer.getCurrentRound();
     const totalRounds = this.currentTimer.getTotalRounds();
@@ -375,16 +370,14 @@ export class ViewSession extends HTMLElement {
 
   private renderControls(): string {
     const timerState = this.currentTimer?.getState() || 'idle';
-    const isRunning = timerState === 'running';
-    const isPaused = timerState === 'paused';
     const isCompleted = timerState === 'completed';
 
     let primaryButton = '';
     if (!this.currentTimer || timerState === 'idle') {
       primaryButton = `<button class="control-btn primary" id="start-btn">Start Timer</button>`;
-    } else if (isRunning) {
+    } else if (timerState === 'running') {
       primaryButton = `<button class="control-btn warning" id="pause-btn">Pause</button>`;
-    } else if (isPaused) {
+    } else if (timerState === 'paused') {
       primaryButton = `<button class="control-btn primary" id="resume-btn">Resume</button>`;
     } else if (isCompleted) {
       primaryButton = `<button class="control-btn primary" id="next-btn">Next Exercise</button>`;
@@ -472,9 +465,8 @@ export class ViewSession extends HTMLElement {
     
     if (exercise.sets) parts.push(`${exercise.sets} sets`);
     if (exercise.reps) parts.push(`${exercise.reps} reps`);
-    if (exercise.weight) parts.push(`${exercise.weight}`);
-    if (exercise.duration) parts.push(`${exercise.duration}`);
-    if (block.timer) parts.push(`${block.timer.toUpperCase()} format`);
+    if (exercise.restSec) parts.push(`${exercise.restSec}s rest`);
+    if (block.timerMode && block.timerMode !== 'none') parts.push(`${block.timerMode.toUpperCase()} format`);
 
     return parts.join(' • ');
   }
@@ -491,7 +483,7 @@ export class ViewSession extends HTMLElement {
     if (!this.currentTimer) return 'Ready';
 
     const block = this.getCurrentBlock();
-    if (!block?.timer) return 'Timer Running';
+    if (!block?.timerMode || block.timerMode === 'none') return 'Timer Running';
 
     if (this.currentTimer instanceof N90Timer || this.currentTimer instanceof TimedCircuitTimer) {
       const phase = (this.currentTimer as any).getCurrentPhase?.();
@@ -504,11 +496,11 @@ export class ViewSession extends HTMLElement {
 
   private createTimerForCurrentBlock(): BaseTimer | null {
     const block = this.getCurrentBlock();
-    if (!block?.timer) return null;
+    if (!block?.timerMode || block.timerMode === 'none') return null;
 
-    const rounds = block.exercises.length;
+    const rounds = block.rounds || block.exercises.length;
 
-    switch (block.timer.toLowerCase()) {
+    switch (block.timerMode) {
       case 'emom':
         return EMOMTimer.createEMOM(rounds);
       case 'e2mom':
@@ -517,10 +509,11 @@ export class ViewSession extends HTMLElement {
         return EMOMTimer.createE4MOM(rounds);
       case 'n90':
         return N90Timer.create(rounds);
-      case 'circuit':
+      case 'timed_circuit':
         return TimedCircuitTimer.createTabata(rounds);
-      case 'rest':
-        return FixedRestTimer.create(180); // 3 minutes default rest
+      case 'fixed_rest':
+        const duration = block.durationSec || 180; // 3 minutes default rest
+        return FixedRestTimer.create(duration);
       default:
         return null;
     }

@@ -3,13 +3,13 @@
  */
 export class WakeLockManager {
   private wakeLock: WakeLockSentinel | null = null;
-  private isSupported = 'wakeLock' in navigator;
+  private supported = 'wakeLock' in navigator;
 
   /**
    * Request a wake lock to prevent screen from sleeping
    */
   async acquire(): Promise<boolean> {
-    if (!this.isSupported) {
+    if (!this.supported) {
       console.warn('Wake Lock API not supported');
       return false;
     }
@@ -22,7 +22,7 @@ export class WakeLockManager {
 
       this.wakeLock = await (navigator as any).wakeLock.request('screen');
       
-      this.wakeLock.addEventListener('release', () => {
+      this.wakeLock?.addEventListener('release', () => {
         console.log('Wake lock released');
         this.wakeLock = null;
       });
@@ -60,8 +60,8 @@ export class WakeLockManager {
   /**
    * Check if wake lock API is supported
    */
-  isSupported(): boolean {
-    return this.isSupported;
+  isSupportedApi(): boolean {
+    return this.supported;
   }
 
   /**

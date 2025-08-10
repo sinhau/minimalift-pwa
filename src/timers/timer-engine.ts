@@ -98,7 +98,6 @@ export abstract class BaseTimer {
 
   protected tick(): void {
     const elapsed = this.getElapsedTime();
-    const timeInPeriod = this.getTimeInCurrentPeriod();
     const remainingInPeriod = this.getRemainingInCurrentPeriod();
     const currentRound = this.getCurrentRound();
     const totalRounds = this.getTotalRounds();
