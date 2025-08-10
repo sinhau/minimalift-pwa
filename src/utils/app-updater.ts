@@ -28,6 +28,19 @@ export class AppUpdater {
 
       // Check for updates immediately
       await this.checkForUpdates();
+      
+      // Check if there's already a waiting worker (happens on app restart)
+      this.checkForWaitingWorker();
+      
+      // Double-check after a short delay to catch any race conditions
+      setTimeout(() => {
+        this.checkForWaitingWorker();
+      }, 1000);
+
+      // Also listen for when a waiting worker becomes available later
+      if (this.registration.installing) {
+        this.trackInstallingWorker(this.registration.installing);
+      }
 
       // Check for updates every 60 seconds when app is active
       setInterval(() => {
@@ -42,13 +55,7 @@ export class AppUpdater {
         const newWorker = this.registration?.installing;
         
         if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New version is ready
-              console.log('New version ready');
-              this.showUpdateAvailable();
-            }
-          });
+          this.trackInstallingWorker(newWorker);
         }
       });
 
@@ -71,6 +78,26 @@ export class AppUpdater {
     } catch (error) {
       console.error('Failed to check for updates:', error);
     }
+  }
+
+  private checkForWaitingWorker() {
+    if (!this.registration) return;
+
+    if (this.registration.waiting) {
+      console.log('Found waiting service worker on startup');
+      this.showUpdateAvailable();
+    }
+  }
+
+  private trackInstallingWorker(worker: ServiceWorker) {
+    worker.addEventListener('statechange', () => {
+      console.log('Service worker state changed:', worker.state);
+      if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+        // New version is ready
+        console.log('New version ready');
+        this.showUpdateAvailable();
+      }
+    });
   }
 
   private showUpdateAvailable() {
