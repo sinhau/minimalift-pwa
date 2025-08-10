@@ -8,7 +8,7 @@ const manifest = {
   "name": "Minimalift",
   "short_name": "Minimalift", 
   "description": "Offline-first PWA for the Minimalift 3-Day strength program",
-  "start_url": `${basePath}/`,
+  "start_url": `${basePath}/#/`,
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#000000",

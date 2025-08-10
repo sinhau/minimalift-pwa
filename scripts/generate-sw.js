@@ -72,7 +72,11 @@ self.addEventListener('fetch', (event) => {
           return response;
         }).catch((error) => {
           console.log('Fetch failed:', error);
-          return caches.match(basePath + '/index.html');
+          // For navigation requests, fallback to index.html
+          if (event.request.mode === 'navigate') {
+            return caches.match(basePath + '/index.html');
+          }
+          throw error;
         });
       })
   );
