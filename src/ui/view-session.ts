@@ -244,6 +244,97 @@ export class ViewSession extends HTMLElement {
           margin: 0;
         }
 
+        .session-save-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        }
+
+        .session-save-dialog {
+          background: var(--bg-primary);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: 32px;
+          margin: 16px;
+          text-align: center;
+          max-width: 400px;
+          width: 100%;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .session-save-dialog h3 {
+          font-size: 24px;
+          font-weight: 700;
+          margin: 0 0 16px 0;
+          color: var(--text-primary);
+        }
+
+        .session-save-dialog p {
+          font-size: 16px;
+          color: var(--text-secondary);
+          margin: 0 0 8px 0;
+        }
+
+        .dialog-actions {
+          display: flex;
+          gap: 12px;
+          margin-top: 24px;
+        }
+
+        .discard-btn, .save-btn {
+          flex: 1;
+          padding: 12px 24px;
+          border: none;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .discard-btn {
+          background: var(--bg-secondary);
+          color: var(--text-secondary);
+          border: 1px solid var(--border);
+        }
+
+        .discard-btn:hover {
+          background: var(--border);
+          color: var(--text-primary);
+        }
+
+        .save-btn {
+          background: var(--accent);
+          color: white;
+        }
+
+        .save-btn:hover {
+          opacity: 0.9;
+        }
+
+        .cancel-session-btn {
+          padding: 8px 16px;
+          background: var(--bg-primary);
+          color: var(--text-secondary);
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .cancel-session-btn:hover {
+          background: var(--border);
+          color: var(--text-primary);
+        }
+
         @media (prefers-color-scheme: dark) {
           :host {
             --bg-primary: #000000;
@@ -317,11 +408,14 @@ export class ViewSession extends HTMLElement {
 
     return `
       <div class="session-header">
-        <div class="session-title">${this.currentDay.title}</div>
-        <div class="session-progress">
-          Block ${this.currentBlockIndex + 1} of ${totalBlocks} • 
-          Exercise ${completedExercises + 1} of ${totalExercises}
+        <div class="session-info">
+          <div class="session-title">${this.currentDay.title}</div>
+          <div class="session-progress">
+            Block ${this.currentBlockIndex + 1} of ${totalBlocks} • 
+            Exercise ${completedExercises + 1} of ${totalExercises}
+          </div>
         </div>
+        <button class="cancel-session-btn" id="cancel-session">Cancel</button>
       </div>
     `;
   }
@@ -539,6 +633,8 @@ export class ViewSession extends HTMLElement {
         this.nextExercise();
       } else if (target.id === 'finish-btn') {
         this.finishSession();
+      } else if (target.id === 'cancel-session') {
+        this.cancelSession();
       }
     });
   }
@@ -611,12 +707,97 @@ export class ViewSession extends HTMLElement {
     feedbackManager.sessionComplete();
     await this.cleanup();
     
+    // Show save/discard dialog
+    this.showSessionSaveDialog();
+  }
+
+  private showSessionSaveDialog() {
+    const duration = this.sessionStartTime ? Math.round((performance.now() - this.sessionStartTime) / 1000) : 0;
+    const minutes = Math.floor(duration / 60);
+    const seconds = duration % 60;
+    const durationText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+    if (!this.shadowRoot) return;
+    
+    // Create overlay dialog
+    const dialogHtml = `
+      <div class="session-save-overlay">
+        <div class="session-save-dialog">
+          <h3>Session Complete!</h3>
+          <p>Duration: ${durationText}</p>
+          <p>Do you want to save this workout session?</p>
+          
+          <div class="dialog-actions">
+            <button class="discard-btn" id="discard-session">
+              Discard Session
+            </button>
+            <button class="save-btn" id="save-session">
+              Save Session
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Add dialog to shadow DOM
+    const dialogElement = document.createElement('div');
+    dialogElement.innerHTML = dialogHtml;
+    this.shadowRoot.appendChild(dialogElement);
+
+    // Add event listeners
+    const discardBtn = this.shadowRoot.querySelector('#discard-session');
+    const saveBtn = this.shadowRoot.querySelector('#save-session');
+
+    discardBtn?.addEventListener('click', () => {
+      this.discardSession();
+    });
+
+    saveBtn?.addEventListener('click', () => {
+      this.saveSession();
+    });
+  }
+
+  private discardSession() {
+    console.log('Session discarded (not saved)');
+    
     this.dispatchEvent(new CustomEvent('session-complete', {
       detail: {
         day: this.currentDay,
-        duration: this.sessionStartTime ? performance.now() - this.sessionStartTime : 0
+        duration: this.sessionStartTime ? performance.now() - this.sessionStartTime : 0,
+        saved: false
       }
     }));
+  }
+
+  private saveSession() {
+    console.log('Session saved');
+    
+    // TODO: Actually save session data to IndexedDB
+    this.dispatchEvent(new CustomEvent('session-complete', {
+      detail: {
+        day: this.currentDay,
+        duration: this.sessionStartTime ? performance.now() - this.sessionStartTime : 0,
+        saved: true
+      }
+    }));
+  }
+
+  private async cancelSession() {
+    const confirmed = confirm('Are you sure you want to cancel this session? Your progress will not be saved.');
+    
+    if (confirmed) {
+      console.log('Session cancelled by user');
+      await this.cleanup();
+      
+      this.dispatchEvent(new CustomEvent('session-complete', {
+        detail: {
+          day: this.currentDay,
+          duration: this.sessionStartTime ? performance.now() - this.sessionStartTime : 0,
+          saved: false,
+          cancelled: true
+        }
+      }));
+    }
   }
 
   private setupBackgroundHandling() {
