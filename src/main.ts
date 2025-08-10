@@ -8,8 +8,9 @@ import { programManager } from './program';
 
 // Service worker registration is now handled by AppUpdater
 
-// Initialize app
+// Initialize app with error handling
 document.addEventListener('DOMContentLoaded', async () => {
+  try {
   // Initialize data
   await programManager.initialize();
 
@@ -88,5 +89,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.log('Open settings');
       // TODO: Show settings modal
     });
+  }
+  } catch (error) {
+    console.error('Failed to initialize app:', error);
+    // Show error message to user
+    document.body.innerHTML = `
+      <div style="padding: 20px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+        <h1>Oops! Something went wrong</h1>
+        <p>There was an error loading Minimalift. Please refresh the page to try again.</p>
+        <button onclick="window.location.reload()" style="padding: 10px 20px; font-size: 16px; background: #007AFF; color: white; border: none; border-radius: 6px; cursor: pointer;">
+          Reload App
+        </button>
+      </div>
+    `;
   }
 });

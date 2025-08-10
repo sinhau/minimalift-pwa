@@ -7,7 +7,12 @@ export class AppUpdater {
   private showUpdateCallback: (() => void) | null = null;
 
   constructor() {
-    this.setupUpdateDetection();
+    // Wait for DOM to be ready before setting up service worker
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.setupUpdateDetection());
+    } else {
+      this.setupUpdateDetection();
+    }
   }
 
   private async setupUpdateDetection() {
