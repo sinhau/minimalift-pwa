@@ -32,6 +32,7 @@ For broader project context, technical specifications, and implementation detail
    ```
    - Fix any failing tests before proceeding
    - All tests must pass to continue
+   - If any tests are failing, carefully reason step by step to understand the root cause, pulling in all the relevant context as needed. Only then work on implementing the test fix.
 
 4. **🚀 Commit & Push**
    ```bash
