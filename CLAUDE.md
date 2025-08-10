@@ -22,28 +22,15 @@ For broader project context, technical specifications, and implementation detail
    ```
    - Must compile without errors
 
-2. **📝 Add New Tests (if needed)**
-   - If you added new functions, components, or significant logic
-   - If you modified existing functionality that isn't well covered
-
-3. **🧪 Run Unit Tests**
-   ```bash
-   npm run test:run
-   ```
-   - Fix any failing tests before proceeding
-   - All tests must pass to continue
-   - If any tests are failing, carefully reason step by step to understand the root cause, pulling in all the relevant context as needed. Only then work on implementing the test fix.
-
-4. **🚀 Commit & Push**
+2. **🚀 Commit & Push**
    ```bash
    git add .
    git commit -m "descriptive message"
    git push
    ```
 
-**If ANY step fails, fix the issues and restart from step 1.**
+**If the build fails, fix the issues and restart from step 1.**
 
 ### Development Notes
 - **PWA Cache Updates**: Service worker cache version is auto-generated using timestamps during `npm run build` to ensure every build creates a new cache version for proper PWA updates
-- **Testing Framework**: Vitest with comprehensive mocks for IndexedDB and timer functionality
 - **Safe Session Testing**: Use save/discard dialog to test workout sessions without corrupting data

@@ -13,7 +13,7 @@ export const seedData: SeedData =
       "blocks": [
         {
           "type": "warmup",
-          "timerMode": "none",
+          "timerType": "none",
           "exercises": [
             {
               "id": "pogos",
@@ -36,9 +36,12 @@ export const seedData: SeedData =
         },
         {
           "type": "strength",
-          "timerMode": "e2mom",
-          "durationSec": 120,
-          "rounds": 6,
+          "timerType": "interval",
+          "timerConfig": {
+            "intervalSec": 120,
+            "rounds": 6,
+            "exercisesPerInterval": 2
+          },
           "notes": "Set a timer for 12 minutes. Every 2 minutes on the minute, perform 1 set of 5 reps on both exercises. Rest in the remainder of the 2 minutes.",
           "exercises": [
             {
@@ -60,7 +63,7 @@ export const seedData: SeedData =
         },
         {
           "type": "swole",
-          "timerMode": "none",
+          "timerType": "none",
           "exercises": [
             {
               "id": "dumbbell_press",
@@ -93,7 +96,7 @@ export const seedData: SeedData =
         },
         {
           "type": "accessory",
-          "timerMode": "none",
+          "timerType": "none",
           "exercises": [
             {
               "id": "y_raise",
@@ -132,7 +135,7 @@ export const seedData: SeedData =
       "blocks": [
         {
           "type": "warmup",
-          "timerMode": "none",
+          "timerType": "none",
           "exercises": [
             {
               "id": "hollowbody_hold",
@@ -155,9 +158,12 @@ export const seedData: SeedData =
         },
         {
           "type": "strength",
-          "timerMode": "e2mom",
-          "durationSec": 120,
-          "rounds": 6,
+          "timerType": "interval",
+          "timerConfig": {
+            "intervalSec": 120,
+            "rounds": 6,
+            "exercisesPerInterval": 2
+          },
           "notes": "Set a timer for 12 minutes. Every 2 minutes on the minute, perform 1 set of 5 reps on both exercises. Rest in the remainder of the 2 minutes.",
           "exercises": [
             {
@@ -179,7 +185,7 @@ export const seedData: SeedData =
         },
         {
           "type": "swole",
-          "timerMode": "none",
+          "timerType": "none",
           "exercises": [
             {
               "id": "deficit_reverse_lunge",
@@ -202,7 +208,7 @@ export const seedData: SeedData =
         },
         {
           "type": "accessory",
-          "timerMode": "none",
+          "timerType": "none",
           "exercises": [
             {
               "id": "pullover_skullcrusher",
@@ -240,7 +246,7 @@ export const seedData: SeedData =
       "blocks": [
         {
           "type": "warmup",
-          "timerMode": "none",
+          "timerType": "none",
           "exercises": [
             {
               "id": "turkish_get_up",
@@ -254,9 +260,12 @@ export const seedData: SeedData =
         },
         {
           "type": "strength",
-          "timerMode": "e2mom",
-          "durationSec": 120,
-          "rounds": 6,
+          "timerType": "interval",
+          "timerConfig": {
+            "intervalSec": 120,
+            "rounds": 6,
+            "exercisesPerInterval": 2
+          },
           "notes": "Set a timer for 12 minutes. Every 2 minutes on the minute, perform 1 set of 5 reps on both exercises. Rest in the remainder of the 2 minutes.",
           "exercises": [
             {
@@ -278,7 +287,7 @@ export const seedData: SeedData =
         },
         {
           "type": "swole",
-          "timerMode": "none",
+          "timerType": "none",
           "exercises": [
             {
               "id": "close_grip_bench_press",
@@ -300,9 +309,15 @@ export const seedData: SeedData =
         },
         {
           "type": "accessory",
-          "timerMode": "timed_circuit",
-          "durationSec": 30,
-          "rounds": 5,
+          "timerType": "circuit",
+          "timerConfig": {
+            "stations": [
+              { "name": "Backwards Walk", "durationSec": 60 },
+              { "name": "Suitcase March", "durationSec": 60 }
+            ],
+            "rounds": 5,
+            "transitionSec": 30
+          },
           "notes": "Perform both exercises as a timed circuit. No rest between exercises. 30s rest between rounds",
           "exercises": [
             {

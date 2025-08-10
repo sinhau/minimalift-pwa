@@ -1,7 +1,5 @@
 import { BaseTimer, TimerEvent } from '../timers/timer-engine';
-import { EMOMTimer } from '../timers/emom';
-import { N90Timer } from '../timers/n90';
-import { FixedRestTimer, TimedCircuitTimer } from '../timers/fixed-rest';
+import { TimerFactory } from '../timers/timer-factory';
 import { Day, Block, Exercise } from '../types';
 import { wakeLockManager } from '../utils/wake-lock';
 import { backgroundTimerManager } from '../utils/background-timer';
@@ -439,7 +437,7 @@ export class ViewSession extends HTMLElement {
   private renderTimer(): string {
     const exercise = this.getCurrentExercise();
     const block = this.getCurrentBlock();
-    const hasBlockTimer = block?.timerMode && block.timerMode !== 'none';
+    const hasBlockTimer = block?.timerType && block.timerType !== 'none';
 
     // For exercises with set-based rest periods
     if (!hasBlockTimer && exercise) {
@@ -508,7 +506,7 @@ export class ViewSession extends HTMLElement {
   private renderControls(): string {
     const block = this.getCurrentBlock();
     const exercise = this.getCurrentExercise();
-    const hasBlockTimer = block?.timerMode && block.timerMode !== 'none';
+    const hasBlockTimer = block?.timerType && block.timerType !== 'none';
     
     // Handle block-level timers (EMOM, Circuit, etc.)
     if (hasBlockTimer) {
@@ -656,7 +654,8 @@ export class ViewSession extends HTMLElement {
     if (exercise.sets) parts.push(`${exercise.sets} sets`);
     if (exercise.reps) parts.push(`${exercise.reps} reps`);
     if (exercise.restSec) parts.push(`${exercise.restSec}s rest`);
-    if (block.timerMode && block.timerMode !== 'none') parts.push(`${block.timerMode.toUpperCase()} format`);
+    const timerLabel = block.timerType;
+    if (timerLabel && timerLabel !== 'none') parts.push(`${timerLabel.toUpperCase()} format`);
 
     return parts.join(' • ');
   }
@@ -673,9 +672,11 @@ export class ViewSession extends HTMLElement {
     if (!this.currentTimer) return 'Ready';
 
     const block = this.getCurrentBlock();
-    if (!block?.timerMode || block.timerMode === 'none') return 'Timer Running';
+    const hasTimer = block?.timerType && block.timerType !== 'none';
+    if (!hasTimer) return 'Timer Running';
 
-    if (this.currentTimer instanceof N90Timer || this.currentTimer instanceof TimedCircuitTimer) {
+    // Check if timer is an interval type timer with multiple rounds
+    if (this.currentTimer && this.currentTimer.getTotalRounds() > 1) {
       const phase = (this.currentTimer as any).getCurrentPhase?.();
       if (phase === 'work') return 'Work Period';
       if (phase === 'rest') return 'Rest Period';
@@ -686,27 +687,9 @@ export class ViewSession extends HTMLElement {
 
   private createTimerForCurrentBlock(): BaseTimer | null {
     const block = this.getCurrentBlock();
-    if (!block?.timerMode || block.timerMode === 'none') return null;
+    if (!block?.timerType || block.timerType === 'none') return null;
 
-    const rounds = block.rounds || block.exercises.length;
-
-    switch (block.timerMode) {
-      case 'emom':
-        return EMOMTimer.createEMOM(rounds);
-      case 'e2mom':
-        return EMOMTimer.createE2MOM(rounds);
-      case 'e4mom':
-        return EMOMTimer.createE4MOM(rounds);
-      case 'n90':
-        return N90Timer.create(rounds);
-      case 'timed_circuit':
-        return TimedCircuitTimer.createTabata(rounds);
-      case 'fixed_rest':
-        const duration = block.durationSec || 180; // 3 minutes default rest
-        return FixedRestTimer.create(duration);
-      default:
-        return null;
-    }
+    return TimerFactory.createTimer(block.timerType, block.timerConfig);
   }
 
   private setupEventListeners() {
@@ -811,7 +794,7 @@ export class ViewSession extends HTMLElement {
         this.isRestingBetweenSets = true;
         
         // Create rest timer
-        this.currentTimer = FixedRestTimer.create(exercise.restSec);
+        this.currentTimer = TimerFactory.createRestTimer(exercise.restSec, 1);
         this.currentTimer.addCallback((event) => {
           if (event.type === 'complete') {
             this.handleRestComplete();

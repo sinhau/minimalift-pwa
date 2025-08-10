@@ -19,9 +19,11 @@ A minimal, offline-first **iPhone PWA** to run the *Minimalift 3‑Day* strength
 1. **Browse Program**: As a user, I can pick **Day 1/2/3** and see the sequence: Warm‑up → Strength & Condition (EMOM/E4MOM/N90) → Swole & Flexy → Accessories.
 2. **Start Session**: I can start a session; the app guides me exercise‑by‑exercise with timers, set counters, and clear next‑up preview.
 3. **Timers**: I can run:
-   - **EMOM/E2MOM/E4MOM** blocks with round count, remaining time, and auto‑advance.
-   - **N90** (every 90s for 5 sets) blocks.
-   - **Fixed rest** timers (e.g., 60s) and **timed circuits**.
+   - **Interval Timer**: Configurable intervals (30s to 4min+) supporting 1-3 exercises per interval with auto‑advance.
+   - **Work/Rest Timer**: Configurable work and rest periods with set counts.
+   - **Circuit Timer**: Multiple stations with configurable durations and transitions.
+   - **Tabata/HIIT Timer**: Configurable work/rest intervals with rounds.
+   - **Stopwatch**: Simple count‑up timer with lap/split tracking.
    - Optional vibration/sound at period changes.
 4. **Log**: For each set I can quickly enter weight, reps, and an optional note; the app pre‑fills from last session.
 5. **Videos**: I can tap a compact thumbnail to watch an exercise demo (YouTube/Vimeo/mp4). Open in‑app player with picture‑in‑picture where available.
@@ -43,9 +45,14 @@ Single DB: `minimalift_v1` with stores & indexes. Keep schema tiny and append‑
   - `dayId` (e.g., `p1_w1_d1`), `programId`, `title`, `order` (1|2|3), `blocks[]`
 - **Block** (embedded in day)
   - `type`: `warmup` | `strength` | `swole` | `accessory`
-  - `timerMode`: `none` | `emom` | `e4mom` | `n90` | `fixed_rest` | `timed_circuit`
-  - `durationSec` (period length for emom/e4mom/n90), `rounds` (e.g., 6), `notes`
-  - `exercises[]` (usually 1–2 for paired EMOM blocks)
+  - `timerType`: `none` | `interval` | `work_rest` | `circuit` | `tabata` | `stopwatch`
+  - `timerConfig`: {
+      - `intervalSec` (for interval timer: 30, 60, 90, 120, 180, 240, etc.)
+      - `workSec`, `restSec` (for work/rest timer)
+      - `stations[]` (for circuit timer with durations)
+      - `rounds`, `exercisesPerInterval` (1-3 for compound sets)
+    }
+  - `exercises[]` (1–3 for compound/paired movements)
 - **Exercise (embedded)**
   - `id`, `name`, `sets` (number) | `reps` (string like "5" or "8–12 e/s"), `restSec` (optional)
   - `substitutes[]` (ids or labels), `videoUrls[]`, `cues` (short note)
@@ -83,9 +90,11 @@ Single DB: `minimalift_v1` with stores & indexes. Keep schema tiny and append‑
     idb.ts (tiny wrapper)
     program.ts (seed JSON import + types)
     timers/
-      emom.ts  (periodic timer w/ drift correction)
-      n90.ts
-      fixedRest.ts
+      interval.ts      (configurable interval timer w/ drift correction)
+      workRest.ts      (work/rest timer with sets)
+      circuit.ts       (multi‑station circuit timer)
+      tabata.ts        (HIIT interval timer)
+      stopwatch.ts     (simple count‑up with laps)
     ui/
       app-shell.ts        (component)
       view-day.ts         (list of blocks)
@@ -111,7 +120,12 @@ Single DB: `minimalift_v1` with stores & indexes. Keep schema tiny and append‑
 
 **Phase 1 — Data & Program (½–1 day)** 4. Implement `idb.ts` wrapper with: `openDb()`, `tx(store, mode)`, `get/put/indexGetAll`. 5. Define `types.ts` for Program/Day/Block/Exercise/Session/Entry. 6. Import seed JSON (`program.ts`) covering D1/D2/D3 across phases with correct timer modes. 7. Build `view-day.ts` to render blocks + substitute chips + video thumbs.
 
-**Phase 2 — Timers & Session Flow (1–2 days)** 8. Implement timer engine with **drift correction**: keep `startEpoch`, compute `elapsed = now - startEpoch`, derive `remaining = period - (elapsed % period)`. 9. Build **EMOM/E4MOM** and **N90** helpers; add **Fixed Rest** + **Timed Circuit**. 10. Create `view-session.ts`: - Start/Pause/Reset, round counter, period countdown, next‑up preview. - Auto‑advance within block; manual override allowed. - Haptic/audio cues at 3–2–1 and period end. 11. Add **Wake Lock** (if available) and fallback: keep‑alive via minimal activity; pause timers on tab hidden; warn user to disable Auto‑Lock for long sessions.
+**Phase 2 — Timers & Session Flow (1–2 days)** 8. Implement timer engine with **drift correction**: keep `startEpoch`, compute `elapsed = now - startEpoch`, derive `remaining = period - (elapsed % period)`. 9. Build comprehensive timer system:
+   - **Interval Timer**: Support any interval (30s–4min+) with 1‑3 exercises per round
+   - **Work/Rest Timer**: Configurable work/rest periods with set tracking
+   - **Circuit Timer**: Multi‑station support with transitions
+   - **Tabata/HIIT Timer**: High‑intensity interval patterns
+   - **Stopwatch**: Simple timer with lap tracking 10. Create `view-session.ts`: - Start/Pause/Reset, round counter, period countdown, next‑up preview. - Auto‑advance within block; manual override allowed. - Haptic/audio cues at 3–2–1 and period end. 11. Add **Wake Lock** (if available) and fallback: keep‑alive via minimal activity; pause timers on tab hidden; warn user to disable Auto‑Lock for long sessions.
 
 **Phase 3 — Logging & History (1 day)** 12. `set-input.ts`: numeric weight/reps pads; prefill from last session (lookup by `exerciseId`). 13. On save: append `Entry` into `sessions` record; compute and flag **top set** per exercise for that session. 14. Simple history drawer (last 3 entries) on exercise card.
 
@@ -142,10 +156,11 @@ Single DB: `minimalift_v1` with stores & indexes. Keep schema tiny and append‑
       "title": "Phase 1 • Week 1 • Day 1",
       "blocks": [
         {"type":"warmup","timerMode":"none","exercises":[{"name":"Pogos","sets":3,"reps":"20"}]},
-        {"type":"strength","timerMode":"emom","durationSec":120,"rounds":6,
+        {"type":"strength","timerType":"interval",
+         "timerConfig":{"intervalSec":120,"rounds":6,"exercisesPerInterval":2},
          "exercises":[{"name":"Barbell Squat","sets":6,"reps":"5"},{"name":"Z‑Press","sets":6,"reps":"5"}]},
         {"type":"swole","timerMode":"none","exercises":[{"name":"Dumbbell Press","sets":1,"reps":"6–10"}]},
-        {"type":"accessory","timerMode":"fixed_rest","durationSec":60,
+        {"type":"accessory","timerType":"work_rest","timerConfig":{"restSec":60},
          "exercises":[{"name":"Dumbbell RDL","sets":1,"reps":"6–10"}]}
       ]
     }
@@ -157,7 +172,7 @@ Single DB: `minimalift_v1` with stores & indexes. Keep schema tiny and append‑
 
 ## Acceptance Criteria (MVP)
 
-- EMOM/E4MOM/N90 timers remain within ±250ms over 12 minutes on iPhone 14+ when screen active.
+- All timer types (interval, work/rest, circuit, etc.) remain within ±250ms accuracy over 12 minutes on iPhone 14+ when screen active.
 - Completing a session persists all entries; reopening shows them offline.
 - Last weights/reps auto‑populate on next run; KG/LB switch updates displays.
 - PWA is installable on iOS (icon, name, splash), loads offline (flight mode test), and resumes an active session after accidental refresh.

@@ -19,13 +19,34 @@ export interface Day {
 }
 
 export type BlockType = 'warmup' | 'strength' | 'swole' | 'accessory';
-export type TimerMode = 'none' | 'emom' | 'e2mom' | 'e4mom' | 'n90' | 'fixed_rest' | 'timed_circuit';
+export type TimerType = 'none' | 'interval' | 'work_rest' | 'circuit' | 'tabata' | 'stopwatch';
+
+export interface TimerConfig {
+  // For interval timer (EMOM, E2MOM, E4MOM, N90, etc.)
+  intervalSec?: number; // 30, 60, 90, 120, 180, 240, etc.
+  exercisesPerInterval?: number; // 1-3 for compound sets
+  
+  // For work/rest timer
+  workSec?: number;
+  restSec?: number;
+  
+  // For circuit timer
+  stations?: { name: string; durationSec: number }[];
+  transitionSec?: number;
+  
+  // For tabata timer
+  highIntensitySec?: number;
+  lowIntensitySec?: number;
+  
+  // Common fields
+  rounds?: number;
+  totalDuration?: number;
+}
 
 export interface Block {
   type: BlockType;
-  timerMode: TimerMode;
-  durationSec?: number;
-  rounds?: number;
+  timerType: TimerType;
+  timerConfig?: TimerConfig;
   notes?: string;
   exercises: Exercise[];
 }

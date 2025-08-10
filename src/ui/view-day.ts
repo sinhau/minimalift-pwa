@@ -214,7 +214,7 @@ export class ViewDay extends HTMLElement {
   }
 
   private renderBlock(block: Block): string {
-    const timerLabel = this.getTimerLabel(block.timerMode);
+    const timerLabel = this.getTimerLabel(block.timerType);
     
     return `
       <div class="block">
@@ -267,16 +267,16 @@ export class ViewDay extends HTMLElement {
     return titles[type] || type;
   }
 
-  private getTimerLabel(timerMode: string): string {
+  private getTimerLabel(timerType: string): string {
     const labels: Record<string, string> = {
-      emom: 'EMOM',
-      e2mom: 'E2MOM',
-      e4mom: 'E4MOM',
-      n90: 'N90',
-      fixed_rest: 'Rest Timer',
-      timed_circuit: 'Circuit'
+      interval: 'Interval',
+      work_rest: 'Work/Rest',
+      circuit: 'Circuit',
+      tabata: 'Tabata',
+      stopwatch: 'Stopwatch',
+      none: ''
     };
-    return labels[timerMode] || '';
+    return labels[timerType] || '';
   }
 }
 
