@@ -79,6 +79,10 @@ export class Router {
   getCurrentPath(): string {
     return this.currentPath;
   }
+
+  start(): void {
+    this.handleRouteChange();
+  }
 }
 
 export const router = new Router();

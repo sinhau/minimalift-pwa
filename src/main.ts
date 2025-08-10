@@ -14,8 +14,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize data
   await programManager.initialize();
 
+  // Wait for app-shell to be fully initialized
   const appShell = document.querySelector('app-shell');
-  const content = document.querySelector('#content') as HTMLElement;
+  if (!appShell) {
+    console.error('App shell not found');
+    return;
+  }
+
+  // Wait for the shadow DOM to be ready
+  await new Promise(resolve => {
+    const check = () => {
+      const shadowRoot = (appShell as any).shadowRoot;
+      if (shadowRoot && shadowRoot.querySelector('#content')) {
+        resolve(void 0);
+      } else {
+        setTimeout(check, 10);
+      }
+    };
+    check();
+  });
+  
+  const content = (appShell as any).shadowRoot.querySelector('#content') as HTMLElement;
   
   if (!content) {
     console.error('Content container not found');
@@ -89,6 +108,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.log('Open settings');
       // TODO: Show settings modal
     });
+  }
+
+  // Start the router
+  router.start();
+  
+  // Default to Day 1 if no hash is set
+  if (!window.location.hash || window.location.hash === '#/') {
+    router.navigate('/day/p1_w1_d1');
   }
   } catch (error) {
     console.error('Failed to initialize app:', error);
