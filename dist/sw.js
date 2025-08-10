@@ -1,4 +1,4 @@
-const CACHE_NAME = 'minimalift-v5';
+const CACHE_NAME = 'minimalift-v6';
 const basePath = '';
 const urlsToCache = [
   basePath + '/',

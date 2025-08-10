@@ -164,10 +164,6 @@ export class UpdateNotification extends HTMLElement {
     await appUpdater.applyUpdate();
   }
 
-  // Public method to manually trigger update check
-  async checkForUpdates() {
-    await appUpdater.forceUpdateCheck();
-  }
 }
 
 customElements.define('update-notification', UpdateNotification);

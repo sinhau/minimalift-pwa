@@ -26,7 +26,15 @@ export class AppUpdater {
       this.registration = await navigator.serviceWorker.register('/sw.js');
       console.log('ServiceWorker registered:', this.registration);
 
-      // Only check for updates manually via refresh button
+      // Check for updates immediately
+      await this.checkForUpdates();
+
+      // Check for updates every 60 seconds when app is active
+      setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          this.checkForUpdates();
+        }
+      }, 60000);
 
       // Listen for service worker updates
       this.registration.addEventListener('updatefound', () => {

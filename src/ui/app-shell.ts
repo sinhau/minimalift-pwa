@@ -65,13 +65,6 @@ export class AppShell extends HTMLElement {
           border-color: var(--accent);
         }
 
-        .header-actions {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-        }
-
-        .refresh-btn,
         .settings-btn {
           padding: 6px;
           background: transparent;
@@ -85,23 +78,9 @@ export class AppShell extends HTMLElement {
           transition: all 0.2s;
         }
 
-        .refresh-btn:hover,
         .settings-btn:hover {
           background: var(--bg-primary);
           color: var(--text-primary);
-        }
-
-        .refresh-btn.loading {
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
         }
 
         main {
@@ -205,19 +184,12 @@ export class AppShell extends HTMLElement {
             <button class="day-btn" data-day="2">Day 2</button>
             <button class="day-btn" data-day="3">Day 3</button>
           </div>
-          <div class="header-actions">
-            <button class="refresh-btn" id="refresh-btn" aria-label="Check for updates">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-              </svg>
-            </button>
-            <button class="settings-btn" aria-label="Settings">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                <path fill-rule="evenodd" d="M10 1.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM10 3a7 7 0 100 14 7 7 0 000-14z"/>
-              </svg>
-            </button>
-          </div>
+          <button class="settings-btn" aria-label="Settings">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+              <path fill-rule="evenodd" d="M10 1.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM10 3a7 7 0 100 14 7 7 0 000-14z"/>
+            </svg>
+          </button>
         </div>
       </header>
 
@@ -253,19 +225,6 @@ export class AppShell extends HTMLElement {
           this.selectDay(day);
         }
       });
-    });
-
-    // Refresh button
-    const refreshBtn = this.shadowRoot.querySelector('#refresh-btn');
-    refreshBtn?.addEventListener('click', async () => {
-      refreshBtn.classList.add('loading');
-      const updateNotification = this.shadowRoot?.querySelector('update-notification') as any;
-      if (updateNotification && updateNotification.checkForUpdates) {
-        await updateNotification.checkForUpdates();
-      }
-      setTimeout(() => {
-        refreshBtn.classList.remove('loading');
-      }, 1000);
     });
 
     // Settings button

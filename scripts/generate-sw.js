@@ -3,7 +3,7 @@ import path from 'path';
 
 const basePath = '';
 
-const swContent = `const CACHE_NAME = 'minimalift-v5';
+const swContent = `const CACHE_NAME = 'minimalift-v6';
 const basePath = '${basePath}';
 const urlsToCache = [
   basePath + '/',
