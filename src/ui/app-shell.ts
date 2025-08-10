@@ -175,8 +175,8 @@ export class AppShell extends HTMLElement {
         <div class="header-content">
           <div class="logo">
             <svg width="32" height="32" viewBox="0 0 32 32">
-              <rect width="32" height="32" rx="6" fill="var(--accent)"/>
-              <text x="16" y="16" font-family="-apple-system, system-ui, sans-serif" font-size="18" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">M</text>
+              <rect width="32" height="32" rx="6" fill="#000000"/>
+              <text x="16" y="16" font-family="-apple-system, system-ui, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle">M</text>
             </svg>
           </div>
           <div class="day-selector">
