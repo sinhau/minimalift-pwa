@@ -90,6 +90,14 @@ export class ViewSession extends HTMLElement {
           flex-shrink: 0;
         }
 
+        .exercise-group {
+          margin-bottom: 16px;
+        }
+
+        .exercise-group:last-child {
+          margin-bottom: 0;
+        }
+
         .exercise-name {
           font-size: 24px;
           font-weight: 700;
@@ -426,6 +434,23 @@ export class ViewSession extends HTMLElement {
     const block = this.getCurrentBlock();
     if (!block) return '';
 
+    // For interval timers with multiple exercises per interval, show all exercises
+    if (block.timerType === 'interval' && block.timerConfig?.exercisesPerInterval && block.timerConfig.exercisesPerInterval > 1) {
+      const exercisesPerInterval = block.timerConfig.exercisesPerInterval;
+      const exercisesToShow = block.exercises.slice(0, exercisesPerInterval);
+      
+      return `
+        <div class="current-exercise">
+          ${exercisesToShow.map(ex => `
+            <div class="exercise-group">
+              <div class="exercise-name">${ex.name}</div>
+              <div class="exercise-details">${this.formatExerciseDetails(ex, block)}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
     return `
       <div class="current-exercise">
         <div class="exercise-name">${exercise.name}</div>
@@ -438,6 +463,39 @@ export class ViewSession extends HTMLElement {
     const exercise = this.getCurrentExercise();
     const block = this.getCurrentBlock();
     const hasBlockTimer = block?.timerType && block.timerType !== 'none';
+    
+    // For interval blocks with multiple exercises, show interval info
+    if (block?.timerType === 'interval' && block.timerConfig?.exercisesPerInterval && block.timerConfig.exercisesPerInterval > 1) {
+      const intervalMinutes = (block.timerConfig.intervalSec || 120) / 60;
+      const exerciseCount = block.timerConfig.exercisesPerInterval;
+      
+      if (this.currentTimer) {
+        const remaining = this.currentTimer.getRemainingInCurrentPeriod();
+        const currentRound = this.currentTimer.getCurrentRound();
+        const totalRounds = this.currentTimer.getTotalRounds();
+        const timerDisplay = BaseTimer.formatTime(remaining);
+        const progress = this.getTimerProgress();
+        
+        return `
+          <div class="timer-section">
+            <div class="timer-display">${timerDisplay}</div>
+            <div class="timer-phase">Interval ${currentRound} of ${totalRounds}</div>
+            <div class="timer-progress">Complete all ${exerciseCount} exercises • Every ${intervalMinutes} min</div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${progress * 100}%"></div>
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="timer-section">
+            <div class="timer-display">--:--</div>
+            <div class="timer-phase">Ready to start</div>
+            <div class="timer-progress">Every ${intervalMinutes} min • ${exerciseCount} exercises per interval</div>
+          </div>
+        `;
+      }
+    }
 
     // For exercises with set-based rest periods
     if (!hasBlockTimer && exercise) {
@@ -634,9 +692,15 @@ export class ViewSession extends HTMLElement {
     const block = this.getCurrentBlock();
     if (!block) return null;
 
+    // For interval timers with multiple exercises, advance by the number of exercises per interval
+    let advanceBy = 1;
+    if (block.timerType === 'interval' && block.timerConfig?.exercisesPerInterval) {
+      advanceBy = block.timerConfig.exercisesPerInterval;
+    }
+
     // Check if there's a next exercise in current block
-    if (this.currentExerciseIndex + 1 < block.exercises.length) {
-      return block.exercises[this.currentExerciseIndex + 1];
+    if (this.currentExerciseIndex + advanceBy < block.exercises.length) {
+      return block.exercises[this.currentExerciseIndex + advanceBy];
     }
 
     // Check if there's a next block
@@ -849,9 +913,15 @@ export class ViewSession extends HTMLElement {
     this.currentSetIndex = 0;
     this.isRestingBetweenSets = false;
 
-    // Move to next exercise in current block
-    if (this.currentExerciseIndex + 1 < block.exercises.length) {
-      this.currentExerciseIndex++;
+    // For interval timers with multiple exercises, advance by the number of exercises per interval
+    let advanceBy = 1;
+    if (block.timerType === 'interval' && block.timerConfig?.exercisesPerInterval) {
+      advanceBy = block.timerConfig.exercisesPerInterval;
+    }
+
+    // Move to next exercise(s) in current block
+    if (this.currentExerciseIndex + advanceBy < block.exercises.length) {
+      this.currentExerciseIndex += advanceBy;
     } else {
       // Move to next block
       this.currentBlockIndex++;
