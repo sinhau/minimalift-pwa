@@ -37,10 +37,21 @@ export class AppShell extends HTMLElement {
           padding: 12px 0;
         }
 
-        h1 {
+        .logo {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .logo svg {
+          color: var(--accent);
+        }
+
+        .logo-text {
           font-size: 20px;
-          font-weight: 600;
+          font-weight: 700;
           margin: 0;
+          color: var(--text-primary);
         }
 
         .day-selector {
@@ -195,7 +206,16 @@ export class AppShell extends HTMLElement {
 
       <header>
         <div class="header-content">
-          <h1>Minimalift</h1>
+          <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M6.5 6.5h11v11h-11z" fill="currentColor" opacity="0.1"/>
+              <rect x="2" y="9" width="2" height="6" rx="1"/>
+              <rect x="6" y="10" width="12" height="4" rx="2"/>
+              <rect x="20" y="9" width="2" height="6" rx="1"/>
+              <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+            </svg>
+            <span class="logo-text">Minimalift</span>
+          </div>
           <div class="day-selector">
             <button class="day-btn active" data-day="1">Day 1</button>
             <button class="day-btn" data-day="2">Day 2</button>
