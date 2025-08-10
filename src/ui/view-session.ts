@@ -393,15 +393,28 @@ export class ViewSession extends HTMLElement {
       return this.renderSessionComplete();
     }
 
-    const currentExercise = this.getCurrentExercise();
-    if (!currentExercise) {
-      return this.renderSessionComplete();
+    // Check if this is an interval block with multiple exercises
+    const isCompoundInterval = currentBlock.timerType === 'interval' && 
+                               currentBlock.timerConfig?.exercisesPerInterval && 
+                               currentBlock.timerConfig.exercisesPerInterval > 1;
+
+    if (!isCompoundInterval) {
+      // Single exercise flow
+      const currentExercise = this.getCurrentExercise();
+      if (!currentExercise) {
+        return this.renderSessionComplete();
+      }
+    } else {
+      // For compound intervals, check if we have exercises left
+      if (this.currentExerciseIndex >= currentBlock.exercises.length) {
+        return this.renderSessionComplete();
+      }
     }
 
     return `
       ${this.renderHeader()}
       <div class="session-main">
-        ${this.renderCurrentExercise(currentExercise)}
+        ${this.renderCurrentExercises()}
         ${this.renderTimer()}
         ${this.renderControls()}
         ${this.renderNextUp()}
@@ -430,14 +443,16 @@ export class ViewSession extends HTMLElement {
     `;
   }
 
-  private renderCurrentExercise(exercise: Exercise): string {
+  private renderCurrentExercises(): string {
     const block = this.getCurrentBlock();
     if (!block) return '';
 
-    // For interval timers with multiple exercises per interval, show all exercises
+    // For interval timers with multiple exercises per interval, show all exercises for current round
     if (block.timerType === 'interval' && block.timerConfig?.exercisesPerInterval && block.timerConfig.exercisesPerInterval > 1) {
       const exercisesPerInterval = block.timerConfig.exercisesPerInterval;
-      const exercisesToShow = block.exercises.slice(0, exercisesPerInterval);
+      // Get the exercises for the current interval round
+      const startIdx = Math.floor(this.currentExerciseIndex / exercisesPerInterval) * exercisesPerInterval;
+      const exercisesToShow = block.exercises.slice(startIdx, startIdx + exercisesPerInterval);
       
       return `
         <div class="current-exercise">
@@ -450,6 +465,10 @@ export class ViewSession extends HTMLElement {
         </div>
       `;
     }
+
+    // Single exercise flow
+    const exercise = this.getCurrentExercise();
+    if (!exercise) return '';
 
     return `
       <div class="current-exercise">
@@ -563,13 +582,15 @@ export class ViewSession extends HTMLElement {
 
   private renderControls(): string {
     const block = this.getCurrentBlock();
-    const exercise = this.getCurrentExercise();
     const hasBlockTimer = block?.timerType && block.timerType !== 'none';
     
     // Handle block-level timers (EMOM, Circuit, etc.)
     if (hasBlockTimer) {
       const timerState = this.currentTimer?.getState() || 'idle';
       const isCompleted = timerState === 'completed';
+      const isCompoundInterval = block.timerType === 'interval' && 
+                                 block.timerConfig?.exercisesPerInterval && 
+                                 block.timerConfig.exercisesPerInterval > 1;
 
       let primaryButton = '';
       if (!this.currentTimer || timerState === 'idle') {
@@ -579,7 +600,8 @@ export class ViewSession extends HTMLElement {
       } else if (timerState === 'paused') {
         primaryButton = `<button class="control-btn primary" id="resume-btn">Resume</button>`;
       } else if (isCompleted) {
-        primaryButton = `<button class="control-btn primary" id="next-btn">Next Exercise</button>`;
+        const buttonText = isCompoundInterval ? 'Next Round' : 'Next Exercise';
+        primaryButton = `<button class="control-btn primary" id="next-btn">${buttonText}</button>`;
       }
 
       return `
@@ -590,6 +612,8 @@ export class ViewSession extends HTMLElement {
         </div>
       `;
     }
+
+    const exercise = this.getCurrentExercise();
 
     // Handle set-based exercises (no block timer, but sets with rest)
     if (!exercise) {
@@ -715,11 +739,12 @@ export class ViewSession extends HTMLElement {
   private formatExerciseDetails(exercise: Exercise, block: Block): string {
     const parts = [];
     
+    // For interval blocks, don't show individual rest times
+    const isIntervalBlock = block.timerType === 'interval';
+    
     if (exercise.sets) parts.push(`${exercise.sets} sets`);
     if (exercise.reps) parts.push(`${exercise.reps} reps`);
-    if (exercise.restSec) parts.push(`${exercise.restSec}s rest`);
-    const timerLabel = block.timerType;
-    if (timerLabel && timerLabel !== 'none') parts.push(`${timerLabel.toUpperCase()} format`);
+    if (!isIntervalBlock && exercise.restSec) parts.push(`${exercise.restSec}s rest`);
 
     return parts.join(' • ');
   }
@@ -752,6 +777,20 @@ export class ViewSession extends HTMLElement {
   private createTimerForCurrentBlock(): BaseTimer | null {
     const block = this.getCurrentBlock();
     if (!block?.timerType || block.timerType === 'none') return null;
+
+    // For interval blocks with multiple exercises, adjust rounds based on current position
+    if (block.timerType === 'interval' && block.timerConfig?.exercisesPerInterval && block.timerConfig.exercisesPerInterval > 1) {
+      const exercisesPerInterval = block.timerConfig.exercisesPerInterval;
+      const currentRoundIndex = Math.floor(this.currentExerciseIndex / exercisesPerInterval);
+      const totalRounds = Math.ceil(block.exercises.length / exercisesPerInterval);
+      const remainingRounds = totalRounds - currentRoundIndex;
+      
+      // Create timer for remaining rounds
+      return TimerFactory.createTimer(block.timerType, {
+        ...block.timerConfig,
+        rounds: remainingRounds
+      });
+    }
 
     return TimerFactory.createTimer(block.timerType, block.timerConfig);
   }
@@ -830,7 +869,34 @@ export class ViewSession extends HTMLElement {
   }
 
   private skipExercise() {
-    this.nextExercise();
+    const block = this.getCurrentBlock();
+    if (block?.timerType === 'interval' && block.timerConfig?.exercisesPerInterval && block.timerConfig.exercisesPerInterval > 1) {
+      // Skip entire interval group
+      this.skipIntervalGroup();
+    } else {
+      this.nextExercise();
+    }
+  }
+
+  private skipIntervalGroup() {
+    const block = this.getCurrentBlock();
+    if (!block) return;
+
+    this.currentTimer?.stop();
+    this.currentTimer = null;
+
+    const exercisesPerInterval = block.timerConfig?.exercisesPerInterval || 1;
+    
+    // Move to next group of exercises
+    if (this.currentExerciseIndex + exercisesPerInterval < block.exercises.length) {
+      this.currentExerciseIndex += exercisesPerInterval;
+    } else {
+      // Move to next block
+      this.currentBlockIndex++;
+      this.currentExerciseIndex = 0;
+    }
+
+    this.render();
   }
 
   private completeExercise() {
