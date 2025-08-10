@@ -1,6 +1,7 @@
 import './ui/app-shell';
 import './ui/view-home';
 import './ui/view-day';
+import './ui/view-session';
 import { router } from './router';
 import { programManager } from './program';
 
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Set up routing
   router.register('/', () => showHome());
   router.register('/day/:id', () => showDay());
+  router.register('/session/:id', () => showSession());
 
   function showHome() {
     content.innerHTML = '<view-home></view-home>';
@@ -55,9 +57,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       viewDay?.addEventListener('start-session', ((e: CustomEvent) => {
-        console.log('Start session for day:', e.detail.dayId);
-        // TODO: Navigate to session view
+        router.navigate(`/session/${e.detail.dayId}`);
       }) as EventListener);
+    }
+  }
+
+  async function showSession() {
+    const params = router.getParams();
+    const dayId = params.id;
+    
+    if (dayId) {
+      const day = await programManager.getDay(dayId);
+      if (day) {
+        content.innerHTML = '<view-session></view-session>';
+        const viewSession = content.querySelector('view-session') as any;
+        
+        if (viewSession && viewSession.setDay) {
+          viewSession.setDay(day);
+        }
+
+        viewSession?.addEventListener('session-complete', ((e: CustomEvent) => {
+          console.log('Session completed:', e.detail);
+          router.navigate(`/day/${dayId}`);
+        }) as EventListener);
+      }
     }
   }
 
