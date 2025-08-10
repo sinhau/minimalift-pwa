@@ -1,19 +1,23 @@
 var L=Object.defineProperty;var F=(c,t,e)=>t in c?L(c,t,{enumerable:!0,configurable:!0,writable:!0,value:e}):c[t]=e;var a=(c,t,e)=>F(c,typeof t!="symbol"?t+"":t,e);(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))r(i);new MutationObserver(i=>{for(const s of i)if(s.type==="childList")for(const n of s.addedNodes)n.tagName==="LINK"&&n.rel==="modulepreload"&&r(n)}).observe(document,{childList:!0,subtree:!0});function e(i){const s={};return i.integrity&&(s.integrity=i.integrity),i.referrerPolicy&&(s.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?s.credentials="include":i.crossOrigin==="anonymous"?s.credentials="omit":s.credentials="same-origin",s}function r(i){if(i.ep)return;i.ep=!0;const s=e(i);fetch(i.href,s)}})();class $ extends HTMLElement{constructor(){super(),this.attachShadow({mode:"open"})}connectedCallback(){this.render(),this.setupEventListeners()}render(){this.shadowRoot&&(this.shadowRoot.innerHTML=`
       <style>
         :host {
-          display: flex;
-          flex-direction: column;
+          display: block;
           height: 100vh;
           height: 100dvh;
           background: var(--bg-primary);
           color: var(--text-primary);
+          position: relative;
         }
 
         header {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
           background: var(--bg-secondary);
           padding: env(safe-area-inset-top) 16px 0 16px;
           border-bottom: 1px solid var(--border);
-          flex-shrink: 0;
+          z-index: 10;
         }
 
         .header-content {
@@ -70,13 +74,15 @@ var L=Object.defineProperty;var F=(c,t,e)=>t in c?L(c,t,{enumerable:!0,configura
         }
 
         main {
-          flex: 1;
+          position: absolute;
+          top: calc(env(safe-area-inset-top) + 65px); /* Safe area + header content */
+          left: 0;
+          right: 0;
+          bottom: 0;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
           padding: 0;
-          position: relative;
           background: var(--bg-primary);
-          min-height: 0; /* Allow flex shrinking for scrolling */
         }
 
         .timer-bar {
@@ -198,7 +204,7 @@ var L=Object.defineProperty;var F=(c,t,e)=>t in c?L(c,t,{enumerable:!0,configura
           </div>
         </div>
       </div>
-    `)}setupEventListeners(){if(!this.shadowRoot)return;this.shadowRoot.querySelectorAll(".day-btn").forEach(e=>{e.addEventListener("click",r=>{const s=r.target.dataset.day;s&&this.selectDay(s)})}),this.shadowRoot.querySelector(".settings-btn")?.addEventListener("click",()=>{this.dispatchEvent(new CustomEvent("open-settings"))})}selectDay(t){if(!this.shadowRoot)return;this.shadowRoot.querySelectorAll(".day-btn").forEach(r=>{r.classList.remove("active")}),this.shadowRoot.querySelector(`.day-btn[data-day="${t}"]`)?.classList.add("active"),this.dispatchEvent(new CustomEvent("day-selected",{detail:{day:t}}))}showTimer(t,e){if(!this.shadowRoot)return;const r=this.shadowRoot.querySelector("#timer-bar"),i=this.shadowRoot.querySelector("#timer-display"),s=this.shadowRoot.querySelector("#timer-round");r&&r.classList.add("active"),i&&(i.textContent=t),s&&(s.textContent=e)}hideTimer(){if(!this.shadowRoot)return;const t=this.shadowRoot.querySelector("#timer-bar");t&&t.classList.remove("active")}}customElements.define("app-shell",$);const A="modulepreload",B=function(c){return"/"+c},D={},W=function(t,e,r){let i=Promise.resolve();if(e&&e.length>0){let w=function(u){return Promise.all(u.map(x=>Promise.resolve(x).then(v=>({status:"fulfilled",value:v}),v=>({status:"rejected",reason:v}))))};var n=w;document.getElementsByTagName("link");const o=document.querySelector("meta[property=csp-nonce]"),d=o?.nonce||o?.getAttribute("nonce");i=w(e.map(u=>{if(u=B(u),u in D)return;D[u]=!0;const x=u.endsWith(".css"),v=x?'[rel="stylesheet"]':"";if(document.querySelector(`link[href="${u}"]${v}`))return;const p=document.createElement("link");if(p.rel=x?"stylesheet":A,x||(p.as="script"),p.crossOrigin="",p.href=u,d&&p.setAttribute("nonce",d),document.head.appendChild(p),x)return new Promise((R,I)=>{p.addEventListener("load",R),p.addEventListener("error",()=>I(new Error(`Unable to preload CSS for ${u}`)))})}))}function s(o){const d=new Event("vite:preloadError",{cancelable:!0});if(d.payload=o,window.dispatchEvent(d),!d.defaultPrevented)throw o}return i.then(o=>{for(const d of o||[])d.status==="rejected"&&s(d.reason);return t().catch(s)})};class q{constructor(){a(this,"db",null);a(this,"dbName","minimalift_v1");a(this,"version",1)}async openDb(){return this.db?this.db:new Promise((t,e)=>{const r=indexedDB.open(this.dbName,this.version);r.onerror=()=>e(r.error),r.onsuccess=()=>{this.db=r.result,t(this.db)},r.onupgradeneeded=i=>{const s=i.target.result;if(s.objectStoreNames.contains("programs")||s.createObjectStore("programs",{keyPath:"programId"}),s.objectStoreNames.contains("days")||s.createObjectStore("days",{keyPath:"dayId"}).createIndex("programId","programId",{unique:!1}),!s.objectStoreNames.contains("sessions")){const n=s.createObjectStore("sessions",{keyPath:"sessionId",autoIncrement:!0});n.createIndex("dayId","dayId",{unique:!1}),n.createIndex("date","startedAt",{unique:!1})}}})}async tx(t,e="readonly"){return(await this.openDb()).transaction([t],e).objectStore(t)}async get(t,e){const r=await this.tx(t);return new Promise((i,s)=>{const n=r.get(e);n.onsuccess=()=>i(n.result),n.onerror=()=>s(n.error)})}async getAll(t){const e=await this.tx(t);return new Promise((r,i)=>{const s=e.getAll();s.onsuccess=()=>r(s.result),s.onerror=()=>i(s.error)})}async put(t,e){const r=await this.tx(t,"readwrite");return new Promise((i,s)=>{const n=r.put(e);n.onsuccess=()=>i(n.result),n.onerror=()=>s(n.error)})}async delete(t,e){const r=await this.tx(t,"readwrite");return new Promise((i,s)=>{const n=r.delete(e);n.onsuccess=()=>i(),n.onerror=()=>s(n.error)})}async indexGetAll(t,e,r){const s=(await this.tx(t)).index(e);return new Promise((n,o)=>{const d=r?s.getAll(r):s.getAll();d.onsuccess=()=>n(d.result),d.onerror=()=>o(d.error)})}async clear(t){const e=await this.tx(t,"readwrite");return new Promise((r,i)=>{const s=e.clear();s.onsuccess=()=>r(),s.onerror=()=>i(s.error)})}}const m=new q,f=class f{constructor(){}static getInstance(){return f.instance||(f.instance=new f),f.instance}async initialize(){const{seedData:t}=await W(async()=>{const{seedData:r}=await import("./seed-data-C_uM7Nqm.js");return{seedData:r}},[]);await m.get("programs",t.programId)||await this.loadSeedData(t)}async loadSeedData(t){const e={programId:t.programId,title:t.title};await m.put("programs",e);for(const r of t.days)await m.put("days",r);console.log("Seed data loaded successfully")}async getProgram(t){return await m.get("programs",t)}async getDaysForProgram(t){return await m.indexGetAll("days","programId",t)}async getDay(t){return await m.get("days",t)}async getAllDays(){return(await m.getAll("days")).sort((e,r)=>e.order-r.order)}};a(f,"instance");let E=f;const k=E.getInstance();class z extends HTMLElement{constructor(){super();a(this,"days",[]);this.attachShadow({mode:"open"})}async connectedCallback(){this.days=await k.getAllDays(),this.render()}render(){this.shadowRoot&&(this.shadowRoot.innerHTML=`
+    `)}setupEventListeners(){if(!this.shadowRoot)return;this.shadowRoot.querySelectorAll(".day-btn").forEach(e=>{e.addEventListener("click",r=>{const s=r.target.dataset.day;s&&this.selectDay(s)})}),this.shadowRoot.querySelector(".settings-btn")?.addEventListener("click",()=>{this.dispatchEvent(new CustomEvent("open-settings"))})}selectDay(t){if(!this.shadowRoot)return;this.shadowRoot.querySelectorAll(".day-btn").forEach(r=>{r.classList.remove("active")}),this.shadowRoot.querySelector(`.day-btn[data-day="${t}"]`)?.classList.add("active"),this.dispatchEvent(new CustomEvent("day-selected",{detail:{day:t}}))}showTimer(t,e){if(!this.shadowRoot)return;const r=this.shadowRoot.querySelector("#timer-bar"),i=this.shadowRoot.querySelector("#timer-display"),s=this.shadowRoot.querySelector("#timer-round");r&&r.classList.add("active"),i&&(i.textContent=t),s&&(s.textContent=e)}hideTimer(){if(!this.shadowRoot)return;const t=this.shadowRoot.querySelector("#timer-bar");t&&t.classList.remove("active")}}customElements.define("app-shell",$);const A="modulepreload",B=function(c){return"/"+c},D={},W=function(t,e,r){let i=Promise.resolve();if(e&&e.length>0){let w=function(u){return Promise.all(u.map(x=>Promise.resolve(x).then(v=>({status:"fulfilled",value:v}),v=>({status:"rejected",reason:v}))))};var n=w;document.getElementsByTagName("link");const o=document.querySelector("meta[property=csp-nonce]"),d=o?.nonce||o?.getAttribute("nonce");i=w(e.map(u=>{if(u=B(u),u in D)return;D[u]=!0;const x=u.endsWith(".css"),v=x?'[rel="stylesheet"]':"";if(document.querySelector(`link[href="${u}"]${v}`))return;const p=document.createElement("link");if(p.rel=x?"stylesheet":A,x||(p.as="script"),p.crossOrigin="",p.href=u,d&&p.setAttribute("nonce",d),document.head.appendChild(p),x)return new Promise((R,I)=>{p.addEventListener("load",R),p.addEventListener("error",()=>I(new Error(`Unable to preload CSS for ${u}`)))})}))}function s(o){const d=new Event("vite:preloadError",{cancelable:!0});if(d.payload=o,window.dispatchEvent(d),!d.defaultPrevented)throw o}return i.then(o=>{for(const d of o||[])d.status==="rejected"&&s(d.reason);return t().catch(s)})};class z{constructor(){a(this,"db",null);a(this,"dbName","minimalift_v1");a(this,"version",1)}async openDb(){return this.db?this.db:new Promise((t,e)=>{const r=indexedDB.open(this.dbName,this.version);r.onerror=()=>e(r.error),r.onsuccess=()=>{this.db=r.result,t(this.db)},r.onupgradeneeded=i=>{const s=i.target.result;if(s.objectStoreNames.contains("programs")||s.createObjectStore("programs",{keyPath:"programId"}),s.objectStoreNames.contains("days")||s.createObjectStore("days",{keyPath:"dayId"}).createIndex("programId","programId",{unique:!1}),!s.objectStoreNames.contains("sessions")){const n=s.createObjectStore("sessions",{keyPath:"sessionId",autoIncrement:!0});n.createIndex("dayId","dayId",{unique:!1}),n.createIndex("date","startedAt",{unique:!1})}}})}async tx(t,e="readonly"){return(await this.openDb()).transaction([t],e).objectStore(t)}async get(t,e){const r=await this.tx(t);return new Promise((i,s)=>{const n=r.get(e);n.onsuccess=()=>i(n.result),n.onerror=()=>s(n.error)})}async getAll(t){const e=await this.tx(t);return new Promise((r,i)=>{const s=e.getAll();s.onsuccess=()=>r(s.result),s.onerror=()=>i(s.error)})}async put(t,e){const r=await this.tx(t,"readwrite");return new Promise((i,s)=>{const n=r.put(e);n.onsuccess=()=>i(n.result),n.onerror=()=>s(n.error)})}async delete(t,e){const r=await this.tx(t,"readwrite");return new Promise((i,s)=>{const n=r.delete(e);n.onsuccess=()=>i(),n.onerror=()=>s(n.error)})}async indexGetAll(t,e,r){const s=(await this.tx(t)).index(e);return new Promise((n,o)=>{const d=r?s.getAll(r):s.getAll();d.onsuccess=()=>n(d.result),d.onerror=()=>o(d.error)})}async clear(t){const e=await this.tx(t,"readwrite");return new Promise((r,i)=>{const s=e.clear();s.onsuccess=()=>r(),s.onerror=()=>i(s.error)})}}const m=new z,f=class f{constructor(){}static getInstance(){return f.instance||(f.instance=new f),f.instance}async initialize(){const{seedData:t}=await W(async()=>{const{seedData:r}=await import("./seed-data-C_uM7Nqm.js");return{seedData:r}},[]);await m.get("programs",t.programId)||await this.loadSeedData(t)}async loadSeedData(t){const e={programId:t.programId,title:t.title};await m.put("programs",e);for(const r of t.days)await m.put("days",r);console.log("Seed data loaded successfully")}async getProgram(t){return await m.get("programs",t)}async getDaysForProgram(t){return await m.indexGetAll("days","programId",t)}async getDay(t){return await m.get("days",t)}async getAllDays(){return(await m.getAll("days")).sort((e,r)=>e.order-r.order)}};a(f,"instance");let E=f;const k=E.getInstance();class q extends HTMLElement{constructor(){super();a(this,"days",[]);this.attachShadow({mode:"open"})}async connectedCallback(){this.days=await k.getAllDays(),this.render()}render(){this.shadowRoot&&(this.shadowRoot.innerHTML=`
       <style>
         :host {
           display: block;
@@ -319,7 +325,7 @@ var L=Object.defineProperty;var F=(c,t,e)=>t in c?L(c,t,{enumerable:!0,configura
           ${r.map(s=>`<span class="block-badge">${s}</span>`).join("")}
         </div>
       </div>
-    `}}customElements.define("view-home",z);class U extends HTMLElement{constructor(){super();a(this,"day",null);this.attachShadow({mode:"open"})}async loadDay(e){this.day=await k.getDay(e)||null,this.render()}render(){if(this.shadowRoot){if(!this.day){this.shadowRoot.innerHTML="<p>Loading...</p>";return}this.shadowRoot.innerHTML=`
+    `}}customElements.define("view-home",q);class U extends HTMLElement{constructor(){super();a(this,"day",null);this.attachShadow({mode:"open"})}async loadDay(e){this.day=await k.getDay(e)||null,this.render()}render(){if(this.shadowRoot){if(!this.day){this.shadowRoot.innerHTML="<p>Loading...</p>";return}this.shadowRoot.innerHTML=`
       <style>
         :host {
           display: block;
@@ -924,4 +930,4 @@ var L=Object.defineProperty;var F=(c,t,e)=>t in c?L(c,t,{enumerable:!0,configura
         </button>
       </div>
     `}});
-//# sourceMappingURL=index-D3Os6O97.js.map
+//# sourceMappingURL=index-CYy4wNkz.js.map

@@ -15,19 +15,23 @@ export class AppShell extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>
         :host {
-          display: flex;
-          flex-direction: column;
+          display: block;
           height: 100vh;
           height: 100dvh;
           background: var(--bg-primary);
           color: var(--text-primary);
+          position: relative;
         }
 
         header {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
           background: var(--bg-secondary);
           padding: env(safe-area-inset-top) 16px 0 16px;
           border-bottom: 1px solid var(--border);
-          flex-shrink: 0;
+          z-index: 10;
         }
 
         .header-content {
@@ -84,13 +88,15 @@ export class AppShell extends HTMLElement {
         }
 
         main {
-          flex: 1;
+          position: absolute;
+          top: calc(env(safe-area-inset-top) + 65px); /* Safe area + header content */
+          left: 0;
+          right: 0;
+          bottom: 0;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
           padding: 0;
-          position: relative;
           background: var(--bg-primary);
-          min-height: 0; /* Allow flex shrinking for scrolling */
         }
 
         .timer-bar {
