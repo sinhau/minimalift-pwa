@@ -20,7 +20,7 @@
     <app-shell></app-shell>
     <script>
       // PWA route fallback - ensure we have a hash route
-      if (!window.location.hash) {
+      if (!window.location.hash && window.location.pathname === '/') {
         window.location.hash = '/';
       }
     </script>

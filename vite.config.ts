@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/minimalift-pwa/' : '/',
+  base: '/',
   build: {
     target: 'es2020',
     outDir: 'dist',

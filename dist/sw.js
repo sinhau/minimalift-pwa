@@ -1,5 +1,5 @@
 const CACHE_NAME = 'minimalift-v1';
-const basePath = '/minimalift-pwa';
+const basePath = '';
 const urlsToCache = [
   basePath + '/',
   basePath + '/index.html',

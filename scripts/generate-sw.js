@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const isProduction = process.env.NODE_ENV === 'production';
-const basePath = isProduction ? '/minimalift-pwa' : '';
+const basePath = '';
 
 const swContent = `const CACHE_NAME = 'minimalift-v1';
 const basePath = '${basePath}';
@@ -91,4 +90,4 @@ if (!fs.existsSync(distDir)) {
 }
 
 fs.writeFileSync(distPath, swContent);
-console.log(`Generated service worker for ${isProduction ? 'production' : 'development'}: ${distPath}`);
+console.log(`Generated service worker: ${distPath}`);

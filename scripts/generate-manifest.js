@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const isProduction = process.env.NODE_ENV === 'production';
-const basePath = isProduction ? '/minimalift-pwa' : '';
+const basePath = '';
 
 const manifest = {
   "name": "Minimalift",
@@ -40,4 +39,4 @@ if (!fs.existsSync(distDir)) {
 }
 
 fs.writeFileSync(distPath, JSON.stringify(manifest, null, 2));
-console.log(`Generated manifest for ${isProduction ? 'production' : 'development'}: ${distPath}`);
+console.log(`Generated manifest: ${distPath}`);

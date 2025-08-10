@@ -8,20 +8,20 @@
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Offline-first PWA for the Minimalift 3-Day strength program" />
     
-    <link rel="manifest" href="/minimalift-pwa/assets/manifest-DfAYfBR7.webmanifest" />
-    <link rel="apple-touch-icon" href="/minimalift-pwa/icons/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/minimalift-pwa/icons/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/minimalift-pwa/icons/favicon-16x16.png" />
+    <link rel="manifest" href="/assets/manifest-DfAYfBR7.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
     
     <title>Minimalift</title>
-    <script type="module" crossorigin src="/minimalift-pwa/assets/index-DAlyaRcZ.js"></script>
-    <link rel="stylesheet" crossorigin href="/minimalift-pwa/assets/index-C_1dFfE4.css">
+    <script type="module" crossorigin src="/assets/index-BtgY7jYk.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-C_1dFfE4.css">
   </head>
   <body>
     <app-shell></app-shell>
     <script>
       // PWA route fallback - ensure we have a hash route
-      if (!window.location.hash) {
+      if (!window.location.hash && window.location.pathname === '/') {
         window.location.hash = '/';
       }
     </script>
