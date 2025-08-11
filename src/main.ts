@@ -2,7 +2,7 @@ import './ui/app-shell';
 import './ui/view-home';
 import './ui/view-day';
 import './ui/view-session';
-import './ui/update-notification';
+import './ui/update-indicator';
 import { router } from './router';
 import { programManager } from './program';
 

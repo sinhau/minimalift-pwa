@@ -69,6 +69,12 @@ export class AppShell extends HTMLElement {
           border-color: var(--accent);
         }
 
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
         .settings-btn {
           padding: 6px;
           background: transparent;
@@ -192,19 +198,20 @@ export class AppShell extends HTMLElement {
             <button class="day-btn" data-day="2">Day 2</button>
             <button class="day-btn" data-day="3">Day 3</button>
           </div>
-          <button class="settings-btn" aria-label="Settings">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-              <path fill-rule="evenodd" d="M10 1.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM10 3a7 7 0 100 14 7 7 0 000-14z"/>
-            </svg>
-          </button>
+          <div class="header-actions">
+            <update-indicator></update-indicator>
+            <button class="settings-btn" aria-label="Settings">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                <path fill-rule="evenodd" d="M10 1.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM10 3a7 7 0 100 14 7 7 0 000-14z"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
 
       <main id="content">
       </main>
-
-      <update-notification></update-notification>
 
       <div class="timer-bar" id="timer-bar">
         <div class="timer-content">
