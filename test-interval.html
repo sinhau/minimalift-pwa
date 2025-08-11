@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Interval Timer</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; background: #f0f0f0; }
+        .pass { background: #d4f5d4; }
+        .fail { background: #f5d4d4; }
+    </style>
+</head>
+<body>
+    <h1>Interval Timer Test</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        // Simulate the block data
+        const block = {
+            "type": "strength",
+            "timerType": "interval",
+            "timerConfig": {
+                "intervalSec": 120,
+                "rounds": 6,
+                "exercisesPerInterval": 2
+            },
+            "exercises": [
+                { "name": "Barbell Squat", "sets": 6, "reps": "5" },
+                { "name": "Z-Press", "sets": 6, "reps": "5" }
+            ]
+        };
+
+        const results = document.getElementById('results');
+
+        // Test 1: Check if compound interval is detected
+        const isCompoundInterval = block.timerType === 'interval' && 
+                                   block.timerConfig?.exercisesPerInterval && 
+                                   block.timerConfig.exercisesPerInterval > 1;
+
+        results.innerHTML += `
+            <div class="test-result ${isCompoundInterval ? 'pass' : 'fail'}">
+                Test 1 - Compound Interval Detection: ${isCompoundInterval ? 'PASS' : 'FAIL'}
+                <br>Timer Type: ${block.timerType}
+                <br>Exercises Per Interval: ${block.timerConfig?.exercisesPerInterval}
+            </div>
+        `;
+
+        // Test 2: Check exercise grouping
+        if (isCompoundInterval) {
+            const currentExerciseIndex = 0;
+            const exercisesPerInterval = block.timerConfig.exercisesPerInterval;
+            const startIdx = Math.floor(currentExerciseIndex / exercisesPerInterval) * exercisesPerInterval;
+            const exercisesToShow = block.exercises.slice(startIdx, startIdx + exercisesPerInterval);
+
+            results.innerHTML += `
+                <div class="test-result pass">
+                    Test 2 - Exercise Grouping: PASS
+                    <br>Should show: ${exercisesToShow.map(e => e.name).join(', ')}
+                    <br>Count: ${exercisesToShow.length} exercises
+                </div>
+            `;
+        }
+
+        // Test 3: Check the actual rendering logic
+        function renderCurrentExercises(block, currentExerciseIndex) {
+            console.log('Block timer type:', block.timerType);
+            console.log('Block timer config:', block.timerConfig);
+            console.log('Exercises per interval:', block.timerConfig?.exercisesPerInterval);
+
+            if (block.timerType === 'interval' && block.timerConfig?.exercisesPerInterval && block.timerConfig.exercisesPerInterval > 1) {
+                const exercisesPerInterval = block.timerConfig.exercisesPerInterval;
+                const startIdx = Math.floor(currentExerciseIndex / exercisesPerInterval) * exercisesPerInterval;
+                const exercisesToShow = block.exercises.slice(startIdx, startIdx + exercisesPerInterval);
+                
+                console.log('Showing compound exercises:', exercisesToShow.map(e => e.name));
+                return exercisesToShow.map(e => e.name).join(' + ');
+            }
+            return block.exercises[currentExerciseIndex]?.name || 'None';
+        }
+
+        const rendered = renderCurrentExercises(block, 0);
+        results.innerHTML += `
+            <div class="test-result ${rendered.includes('+') ? 'pass' : 'fail'}">
+                Test 3 - Render Function: ${rendered.includes('+') ? 'PASS' : 'FAIL'}
+                <br>Rendered: ${rendered}
+            </div>
+        `;
+
+        // Test 4: Check all data paths
+        results.innerHTML += `
+            <div class="test-result pass">
+                Test 4 - Data Structure Check:
+                <br>block.timerType = "${block.timerType}" (should be "interval")
+                <br>block.timerConfig exists = ${!!block.timerConfig}
+                <br>block.timerConfig.exercisesPerInterval = ${block.timerConfig?.exercisesPerInterval} (should be 2)
+                <br>Condition result = ${block.timerType === 'interval' && block.timerConfig?.exercisesPerInterval && block.timerConfig.exercisesPerInterval > 1}
+            </div>
+        `;
+    </script>
+</body>
+</html>
