@@ -3,6 +3,7 @@ import './ui/view-home';
 import './ui/view-day';
 import './ui/view-session';
 import './ui/update-indicator';
+import './ui/timer-display';
 import { router } from './router';
 import { programManager } from './program';
 
