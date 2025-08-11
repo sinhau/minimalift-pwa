@@ -452,6 +452,23 @@ export class ViewSession extends BaseComponent {
 
     this.currentTimer.start();
     feedbackManager.timerStart();
+    
+    // Immediately get initial timer state for display
+    // The timer's first tick happens after tickInterval, so we need this for immediate feedback
+    if (this.currentTimer) {
+      const duration = (this.currentTimer as any).getDuration ? (this.currentTimer as any).getDuration() : 0;
+      const totalRounds = (this.currentTimer as any).getTotalRounds ? (this.currentTimer as any).getTotalRounds() : 1;
+      const initialEvent: TimerEvent = {
+        type: 'tick',
+        elapsed: 0,
+        remaining: duration,
+        round: 1,
+        totalRounds: totalRounds,
+        state: 'running'
+      };
+      (this.currentTimer as any).lastEvent = initialEvent;
+    }
+    
     this.updateContent();
   }
 
