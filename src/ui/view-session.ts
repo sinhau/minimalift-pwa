@@ -420,7 +420,9 @@ export class ViewSession extends BaseComponent {
   protected setupEventListeners(): void {
     this.shadow.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
-      const action = target.dataset.action;
+      // Check if click is on button or its children (like SVG)
+      const button = target.closest('[data-action]') as HTMLElement;
+      const action = button?.dataset.action || target.dataset.action;
 
       switch(action) {
         case 'start':
