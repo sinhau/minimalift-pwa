@@ -13,7 +13,15 @@ export class SessionRenderer {
 
     return `
       <div class="session-header">
-        <div class="session-title">${day.title}</div>
+        <div class="session-header-top">
+          <div class="session-title">${day.title}</div>
+          <button class="cancel-session-btn" data-action="cancel-session" aria-label="Cancel session">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
         <div class="session-progress">
           <div class="progress-bar" style="width: ${progress.percentage}%"></div>
         </div>
@@ -211,6 +219,28 @@ export class SessionRenderer {
             </button>
             <button class="control-btn secondary" data-action="discard">
               Discard
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render cancel confirmation dialog
+   */
+  static renderCancelDialog(): string {
+    return `
+      <div class="session-save-overlay">
+        <div class="session-save-dialog">
+          <h3>Cancel Workout?</h3>
+          <p>Are you sure you want to cancel this workout session? All progress will be lost.</p>
+          <div class="dialog-buttons">
+            <button class="control-btn secondary" data-action="cancel-confirm">
+              Yes, Cancel
+            </button>
+            <button class="control-btn primary" data-action="cancel-dismiss">
+              Continue Workout
             </button>
           </div>
         </div>

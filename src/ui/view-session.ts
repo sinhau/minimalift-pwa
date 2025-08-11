@@ -41,10 +41,33 @@ export class ViewSession extends BaseComponent {
           flex-shrink: 0;
         }
 
+        .session-header-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+
         .session-title {
           font-size: 18px;
           font-weight: 600;
-          margin: 0 0 8px 0;
+          margin: 0;
+        }
+
+        .cancel-session-btn {
+          background: transparent;
+          border: none;
+          color: var(--text-secondary);
+          cursor: pointer;
+          padding: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: color 0.2s;
+        }
+
+        .cancel-session-btn:hover {
+          color: var(--warning);
         }
 
         .session-progress {
@@ -431,6 +454,15 @@ export class ViewSession extends BaseComponent {
         case 'discard':
           this.discardSession();
           break;
+        case 'cancel-session':
+          this.showCancelDialog();
+          break;
+        case 'cancel-confirm':
+          this.cancelSession();
+          break;
+        case 'cancel-dismiss':
+          this.dismissCancelDialog();
+          break;
       }
     });
 
@@ -641,6 +673,36 @@ export class ViewSession extends BaseComponent {
       day: this.state.getDay(),
       duration: this.state.getSessionDuration(),
       saved: false
+    });
+  }
+
+  private showCancelDialog(): void {
+    const container = this.$('#container');
+    if (container) {
+      const dialogHtml = SessionRenderer.renderCancelDialog();
+      const overlay = document.createElement('div');
+      overlay.innerHTML = dialogHtml;
+      container.appendChild(overlay.firstElementChild!);
+    }
+  }
+
+  private dismissCancelDialog(): void {
+    const overlay = this.$('.session-save-overlay');
+    if (overlay) {
+      overlay.remove();
+    }
+  }
+
+  private async cancelSession(): Promise<void> {
+    // Clean up any active timers and resources
+    await this.cleanup();
+    
+    // Emit session cancelled event
+    this.emit('session-complete', {
+      day: this.state.getDay(),
+      duration: this.state.getSessionDuration(),
+      saved: false,
+      cancelled: true
     });
   }
 
