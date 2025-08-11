@@ -2,6 +2,7 @@ import './ui/app-shell';
 import './ui/view-home';
 import './ui/view-day';
 import './ui/view-session';
+import './ui/view-session-refactored';
 import './ui/update-indicator';
 import './ui/timer-display';
 import { router } from './router';
