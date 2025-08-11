@@ -129,16 +129,6 @@ export class ViewDay extends HTMLElement {
           border-color: var(--accent);
         }
 
-        .block-notes {
-          background: var(--bg-primary);
-          border-radius: 8px;
-          padding: 12px;
-          margin-top: 12px;
-          font-size: 13px;
-          color: var(--text-secondary);
-          line-height: 1.5;
-        }
-
         .start-session-btn {
           position: fixed;
           bottom: 24px;
@@ -224,8 +214,6 @@ export class ViewDay extends HTMLElement {
         </div>
         
         ${block.exercises.map(exercise => this.renderExercise(exercise)).join('')}
-        
-        ${block.notes ? `<div class="block-notes">${block.notes}</div>` : ''}
       </div>
     `;
   }
