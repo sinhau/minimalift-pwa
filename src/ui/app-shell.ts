@@ -75,24 +75,6 @@ export class AppShell extends HTMLElement {
           gap: 8px;
         }
 
-        .settings-btn {
-          padding: 6px;
-          background: transparent;
-          border: none;
-          color: var(--text-secondary);
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 4px;
-          transition: all 0.2s;
-        }
-
-        .settings-btn:hover {
-          background: var(--bg-primary);
-          color: var(--text-primary);
-        }
-
         main {
           position: absolute;
           top: calc(env(safe-area-inset-top) + 65px); /* Safe area + header content */
@@ -200,12 +182,6 @@ export class AppShell extends HTMLElement {
           </div>
           <div class="header-actions">
             <update-indicator></update-indicator>
-            <button class="settings-btn" aria-label="Settings">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                <path fill-rule="evenodd" d="M10 1.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM10 3a7 7 0 100 14 7 7 0 000-14z"/>
-              </svg>
-            </button>
           </div>
         </div>
       </header>
@@ -242,11 +218,6 @@ export class AppShell extends HTMLElement {
       });
     });
 
-    // Settings button
-    const settingsBtn = this.shadowRoot.querySelector('.settings-btn');
-    settingsBtn?.addEventListener('click', () => {
-      this.dispatchEvent(new CustomEvent('open-settings'));
-    });
   }
 
   private selectDay(day: string) {

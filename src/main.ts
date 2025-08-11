@@ -108,12 +108,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       const dayId = `p1_w1_d${dayNumber}`;
       router.navigate(`/day/${dayId}`);
     }) as EventListener);
-    
-    // Listen for settings
-    appShell.addEventListener('open-settings', () => {
-      console.log('Open settings');
-      // TODO: Show settings modal
-    });
   }
 
   // Start the router
