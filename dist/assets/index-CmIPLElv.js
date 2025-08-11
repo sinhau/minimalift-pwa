@@ -1075,7 +1075,7 @@ var $=Object.defineProperty;var F=(c,i,e)=>i in c?$(c,i,{enumerable:!0,configura
         }
 
         /* Loading state */
-        :host(.updating) .indicator {
+        :host(.updating) .icon {
           animation: rotate 1s linear infinite;
         }
 
@@ -1110,4 +1110,4 @@ var $=Object.defineProperty;var F=(c,i,e)=>i in c?$(c,i,{enumerable:!0,configura
         </button>
       </div>
     `}});
-//# sourceMappingURL=index-nFIpD_nU.js.map
+//# sourceMappingURL=index-CmIPLElv.js.map

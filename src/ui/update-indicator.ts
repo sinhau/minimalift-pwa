@@ -120,7 +120,7 @@ export class UpdateIndicator extends HTMLElement {
         }
 
         /* Loading state */
-        :host(.updating) .indicator {
+        :host(.updating) .icon {
           animation: rotate 1s linear infinite;
         }
 
