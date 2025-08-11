@@ -22,8 +22,7 @@ self.addEventListener('install', (event) => {
       .then((cache) => cache.addAll(urlsToCache))
       .catch((error) => console.log('Cache addAll failed:', error))
   );
-  // Force immediate activation
-  self.skipWaiting();
+  // Don't skip waiting - let the user control when to update
 });
 
 self.addEventListener('activate', (event) => {

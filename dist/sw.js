@@ -1,4 +1,4 @@
-const CACHE_NAME = 'minimalift-v1754871294856';
+const CACHE_NAME = 'minimalift-v1754871477736';
 const basePath = '';
 const urlsToCache = [
   basePath + '/',
@@ -14,8 +14,7 @@ self.addEventListener('install', (event) => {
       .then((cache) => cache.addAll(urlsToCache))
       .catch((error) => console.log('Cache addAll failed:', error))
   );
-  // Force immediate activation
-  self.skipWaiting();
+  // Don't skip waiting - let the user control when to update
 });
 
 self.addEventListener('activate', (event) => {

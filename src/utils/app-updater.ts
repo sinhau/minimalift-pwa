@@ -5,6 +5,7 @@
 export class AppUpdater {
   private registration: ServiceWorkerRegistration | null = null;
   private showUpdateCallback: (() => void) | null = null;
+  private updateNotificationShown: boolean = false;
 
   constructor() {
     // Wait for DOM to be ready before setting up service worker
@@ -124,6 +125,14 @@ export class AppUpdater {
   }
 
   private showUpdateAvailable() {
+    // Prevent showing multiple notifications
+    if (this.updateNotificationShown) {
+      console.log('Update notification already shown, skipping');
+      return;
+    }
+    
+    this.updateNotificationShown = true;
+    
     if (this.showUpdateCallback) {
       this.showUpdateCallback();
     } else {
@@ -154,6 +163,9 @@ export class AppUpdater {
       return;
     }
 
+    // Reset the flag so future updates can be shown
+    this.updateNotificationShown = false;
+    
     // Tell the waiting service worker to skip waiting and become active
     this.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
   }
