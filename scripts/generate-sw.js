@@ -22,7 +22,8 @@ self.addEventListener('install', (event) => {
       .then((cache) => cache.addAll(urlsToCache))
       .catch((error) => console.log('Cache addAll failed:', error))
   );
-  // Don't skip waiting automatically - let the app control when to update
+  // Force immediate activation
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -47,6 +48,19 @@ self.addEventListener('fetch', (event) => {
   // Skip chrome-extension requests
   if (event.request.url.startsWith('chrome-extension://')) return;
   
+  // For JS and CSS assets, always fetch from network (no caching)
+  // This ensures PWA always gets latest code after updates
+  if (event.request.url.includes('/assets/') && 
+      (event.request.url.endsWith('.js') || event.request.url.endsWith('.css'))) {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // If offline, try cache as fallback
+        return caches.match(event.request);
+      })
+    );
+    return;
+  }
+  
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -60,6 +74,11 @@ self.addEventListener('fetch', (event) => {
         return fetch(fetchRequest).then((response) => {
           // Check if response is valid
           if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+          
+          // Don't cache JS/CSS files - they should always be fresh
+          if (event.request.url.includes('/assets/')) {
             return response;
           }
           
